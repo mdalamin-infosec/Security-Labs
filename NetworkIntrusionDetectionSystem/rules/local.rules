@@ -1,0 +1,7 @@
+alert icmp any any -> $HOME_NET any (msg:"CODEALPHA ICMP Ping Detected"; sid:1000001; rev:1;)
+
+alert tcp any any -> $HOME_NET any (flags:S; threshold:type both, track by_src, count 10, seconds 5; msg:"CODEALPHA Possible SYN Scan"; sid:1000002; rev:1;)
+
+alert tcp any any -> $HOME_NET 22 (msg:"CODEALPHA SSH Connection Attempt"; sid:1000003; rev:1;)
+
+alert tcp any any -> $HOME_NET 4444 (msg:"CODEALPHA Suspicious TCP Port 4444 Activity"; sid:1000004; rev:1;)
