@@ -1,0 +1,19 @@
+# ThreatWatch Lab - local detection rules (SID range 9000001-9000008)
+# Each rule carries MITRE ATT&CK and severity metadata read by threatwatch/rules.py.
+# Thresholds are lab defaults; tune them against your own baseline (docs/DETECTION_RULES.md).
+
+alert tcp any any -> $HOME_NET 22 (msg:"TW SSH repeated connection attempts (possible brute force)"; flow:to_server; flags:S; threshold:type both, track by_src, count 5, seconds 60; classtype:attempted-admin; sid:9000001; rev:1; metadata:mitre_technique T1110, mitre_tactic credential-access, severity high, playbook ssh-brute-force;)
+
+alert tcp any any -> $HOME_NET any (msg:"TW TCP SYN burst across ports (possible port scan)"; flags:S; threshold:type both, track by_src, count 30, seconds 10; classtype:attempted-recon; sid:9000002; rev:1; metadata:mitre_technique T1046, mitre_tactic discovery, severity medium, playbook recon-scan;)
+
+alert icmp any any -> $HOME_NET any (msg:"TW ICMP echo burst (possible host sweep)"; itype:8; threshold:type both, track by_src, count 10, seconds 10; classtype:attempted-recon; sid:9000003; rev:1; metadata:mitre_technique T1018, mitre_tactic discovery, severity low, playbook recon-scan;)
+
+alert http any any -> $HOME_NET any (msg:"TW Known scanner user-agent in HTTP request"; flow:established,to_server; http.user_agent; pcre:"/(sqlmap|nikto|Nmap Scripting Engine)/i"; classtype:web-application-attack; sid:9000004; rev:1; metadata:mitre_technique T1595, mitre_tactic reconnaissance, severity medium, playbook web-attack;)
+
+alert http any any -> $HOME_NET any (msg:"TW HTTP Basic authentication sent in cleartext"; flow:established,to_server; http.header; content:"Authorization|3a 20|Basic"; nocase; classtype:policy-violation; sid:9000005; rev:1; metadata:mitre_technique T1040, mitre_tactic credential-access, severity medium, playbook cleartext-credentials;)
+
+alert dns $HOME_NET any -> any any (msg:"TW DNS query with unusually long label (possible tunneling or DGA)"; dns.query; pcre:"/^[a-z0-9\-]{40,}\./i"; classtype:bad-unknown; sid:9000006; rev:1; metadata:mitre_technique T1071.004, mitre_tactic command-and-control, severity medium, playbook dns-anomaly;)
+
+alert http any any -> $HOME_NET any (msg:"TW HTTP directory traversal attempt in URI"; flow:established,to_server; http.uri; pcre:"/(\.\.\/|%2e%2e%2f)/i"; classtype:web-application-attack; sid:9000007; rev:1; metadata:mitre_technique T1190, mitre_tactic initial-access, severity high, playbook web-attack;)
+
+alert tcp any any -> $HOME_NET 23 (msg:"TW Telnet connection to internal host"; flow:to_server,established; threshold:type limit, track by_src, count 1, seconds 300; classtype:policy-violation; sid:9000008; rev:1; metadata:mitre_technique T1021, mitre_tactic lateral-movement, severity medium, playbook cleartext-credentials;)
