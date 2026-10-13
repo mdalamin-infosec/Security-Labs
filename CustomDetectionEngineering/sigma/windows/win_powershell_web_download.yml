@@ -1,0 +1,25 @@
+title: PowerShell Remote Content Download
+id: 594ba8bf-7c86-5cdb-b07b-a16ba5d0cfac
+status: experimental
+description: Flags powershell remote content download for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \powershell.exe
+    CommandLine|contains: DownloadString
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Authorized software management may fetch scripts.
+level: medium
+tags:
+- attack.t1059.001

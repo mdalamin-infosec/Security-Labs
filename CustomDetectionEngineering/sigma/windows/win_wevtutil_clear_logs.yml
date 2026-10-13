@@ -1,0 +1,25 @@
+title: Windows Event Log Clearing
+id: ad589d7e-5c67-5246-9a17-7c5e9a141290
+status: experimental
+description: Flags windows event log clearing for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \wevtutil.exe
+    CommandLine|contains: ' cl '
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Administrative log management can clear event logs.
+level: high
+tags:
+- attack.t1070.001

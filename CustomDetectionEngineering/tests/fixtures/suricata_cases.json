@@ -1,0 +1,76 @@
+[
+  {
+    "case_id": "http_traversal",
+    "label": "attack",
+    "type": "http",
+    "uri": "/files/../../private.txt"
+  },
+  {
+    "case_id": "http_passwd",
+    "label": "attack",
+    "type": "http",
+    "uri": "/download?file=/etc/passwd"
+  },
+  {
+    "case_id": "http_sqli",
+    "label": "attack",
+    "type": "http",
+    "uri": "/products?id=1+UNION+SELECT+user"
+  },
+  {
+    "case_id": "http_git",
+    "label": "attack",
+    "type": "http",
+    "uri": "/.git/config"
+  },
+  {
+    "case_id": "http_env",
+    "label": "attack",
+    "type": "http",
+    "uri": "/.env"
+  },
+  {
+    "case_id": "http_scanner",
+    "label": "attack",
+    "type": "http",
+    "uri": "/login",
+    "user_agent": "sqlmap/1.8"
+  },
+  {
+    "case_id": "http_cgi",
+    "label": "attack",
+    "type": "http",
+    "uri": "/cgi-bin/test?/bin/sh"
+  },
+  {
+    "case_id": "dns_exfil",
+    "label": "attack",
+    "type": "dns",
+    "qname": "abcd1234.exfil.lab.invalid."
+  },
+  {
+    "case_id": "http_normal",
+    "label": "benign",
+    "type": "http",
+    "uri": "/index.html"
+  },
+  {
+    "case_id": "http_docs",
+    "label": "benign",
+    "type": "http",
+    "uri": "/docs/guide",
+    "user_agent": "Mozilla/5.0"
+  },
+  {
+    "case_id": "http_health",
+    "label": "benign",
+    "type": "http",
+    "uri": "/health"
+  },
+  {
+    "case_id": "dns_normal",
+    "label": "benign",
+    "type": "dns",
+    "qname": "updates.example.org."
+  }
+]

@@ -1,0 +1,27 @@
+title: Scheduled Task Creation From Command Line
+id: 829ef70c-e28a-5560-befd-49f3bf253790
+status: experimental
+description: Flags scheduled task creation from command line for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \schtasks.exe
+    CommandLine|contains: /create
+  filter_approved_parent:
+    ParentImage|endswith: \ccmexec.exe
+  condition: selection and not filter_approved_parent
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Administrators and device management create scheduled tasks.
+level: medium
+tags:
+- attack.t1053.005

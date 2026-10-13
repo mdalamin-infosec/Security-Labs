@@ -1,0 +1,25 @@
+title: Chmod World Writable Permission
+id: c7ca27b8-6405-511b-9570-839decdb6e20
+status: experimental
+description: Flags chmod world writable permission for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    Image|endswith: /chmod
+    CommandLine|contains: '777 '
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Some temporary or shared lab paths intentionally use mode 777.
+level: medium
+tags:
+- attack.t1222.002

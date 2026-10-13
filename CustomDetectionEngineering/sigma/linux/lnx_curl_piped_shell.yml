@@ -1,0 +1,25 @@
+title: Curl Piped to Shell
+id: dba34cf4-ed68-5278-81bd-c352cfac7f86
+status: experimental
+description: Flags curl piped to shell for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection:
+    Image|endswith: /bash
+    CommandLine|contains: 'curl '
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Installer one-liners used by administrators.
+level: medium
+tags:
+- attack.t1059.004

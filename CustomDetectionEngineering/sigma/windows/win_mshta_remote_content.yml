@@ -1,0 +1,25 @@
+title: Mshta Remote Script Execution
+id: da795288-e512-5d13-a0aa-d68c0663b00b
+status: experimental
+description: Flags mshta remote script execution for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \mshta.exe
+    CommandLine|contains: http
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Legacy business applications can execute HTA files.
+level: medium
+tags:
+- attack.t1218.005
