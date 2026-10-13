@@ -1,0 +1,32 @@
+# Ships Suricata EVE JSON to Elasticsearch as threatwatch-eve-YYYY.MM.DD.
+filebeat.inputs:
+  - type: filestream
+    id: suricata-eve
+    paths:
+      - /var/log/suricata/eve.json
+    parsers:
+      - ndjson:
+          target: ""
+          add_error_key: true
+
+processors:
+  # Use the EVE event time as @timestamp, then drop the duplicate field.
+  - timestamp:
+      field: timestamp
+      layouts:
+        - "2006-01-02T15:04:05.999999Z0700"
+      ignore_failure: true
+  - drop_fields:
+      fields: ["timestamp", "agent", "ecs", "log", "input", "host"]
+      ignore_missing: true
+
+setup.ilm.enabled: false
+setup.template.enabled: true
+setup.template.name: "threatwatch-eve"
+setup.template.pattern: "threatwatch-eve-*"
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "threatwatch-eve-%{+yyyy.MM.dd}"
+
+logging.level: info

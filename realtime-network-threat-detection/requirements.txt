@@ -1,0 +1,2 @@
+# The analyst tooling uses only the Python standard library (Python 3.11+).
+# Docker Compose is needed only for the live Suricata/Elastic stack.
