@@ -1,0 +1,25 @@
+title: Encoded PowerShell Execution
+id: c0431bea-6d70-515e-8c96-e80a842e16d2
+status: experimental
+description: Flags encoded powershell execution for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \powershell.exe
+    CommandLine|contains: -encodedcommand
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Process command line can contain legitimate encoded scripts.
+level: medium
+tags:
+- attack.t1059.001

@@ -1,0 +1,25 @@
+title: Certutil URL Cache Fetch
+id: 3ccd18ef-fa1d-5b3c-88f8-2c278cb81c42
+status: experimental
+description: Flags certutil url cache fetch for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \certutil.exe
+    CommandLine|contains: -urlcache
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- PKI maintenance and legitimate downloads.
+level: medium
+tags:
+- attack.t1105

@@ -1,0 +1,25 @@
+title: WMIC Process Create
+id: 8150223c-2793-5a51-998b-54c42212f39d
+status: experimental
+description: Flags wmic process create for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \wmic.exe
+    CommandLine|contains: process call create
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Remote administration tools use WMI.
+level: medium
+tags:
+- attack.t1047

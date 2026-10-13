@@ -1,0 +1,27 @@
+title: BITSAdmin File Transfer
+id: 58ab63b4-21d6-53a7-9dd3-a1b4775a79d0
+status: experimental
+description: Flags bitsadmin file transfer for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \bitsadmin.exe
+    CommandLine|contains: /transfer
+  filter_approved_parent:
+    ParentImage|endswith: \ccmexec.exe
+  condition: selection and not filter_approved_parent
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Corporate device management agents can legitimately use BITS.
+level: medium
+tags:
+- attack.t1197

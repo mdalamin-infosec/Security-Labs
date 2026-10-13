@@ -1,0 +1,27 @@
+title: Local Administrators Group Addition
+id: e02381a5-e191-5445-8056-363b75d5cdcb
+status: experimental
+description: Flags local administrators group addition for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \net.exe
+    CommandLine|contains: localgroup administrators
+  filter_approved_parent:
+    ParentImage|endswith: \maintenance-agent.exe
+  condition: selection and not filter_approved_parent
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Approved administrator provisioning workflows.
+level: medium
+tags:
+- attack.t1098

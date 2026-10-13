@@ -1,0 +1,18 @@
+# Experimental laboratory signatures; tune before production!
+# 4200008 matches a reserved .invalid lab domain, NOT a real threat IOC.
+# DIR TRAVERSAL RAW URI
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Possible directory traversal in URI"; flow:established,to_server; http.uri.raw; content:"../"; classtype:web-application-attack; sid:4200001; rev:1;)
+# LOCAL FILE READ ATTEMPT
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Possible passwd file access"; flow:established,to_server; http.uri; content:"/etc/passwd"; nocase; classtype:web-application-attack; sid:4200002; rev:1;)
+# SQL INJECTION TOKEN PAIR
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Potential UNION SELECT SQL injection"; flow:established,to_server; http.uri; content:"union"; nocase; content:"select"; nocase; classtype:web-application-attack; sid:4200003; rev:1;)
+# EXPOSED GIT METADATA PROBE
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Git config probe"; flow:established,to_server; http.uri; content:"/.git/config"; nocase; classtype:web-application-attack; sid:4200004; rev:1;)
+# DOT ENV FILE PROBE
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Dotenv file probe"; flow:established,to_server; http.uri; content:"/.env"; nocase; classtype:web-application-attack; sid:4200005; rev:1;)
+# SQLMAP USER AGENT
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Sqlmap scanner user agent"; flow:established,to_server; http.user_agent; content:"sqlmap"; nocase; classtype:web-application-attack; sid:4200006; rev:1;)
+# CGI SHELL REQUEST
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"LAB WEB Suspicious CGI shell request"; flow:established,to_server; http.uri; content:"/cgi-bin/"; content:"/bin/sh"; classtype:web-application-attack; sid:4200007; rev:1;)
+# LAB DNS EXFIL DOMAIN
+alert dns $HOME_NET any -> $EXTERNAL_NET any (msg:"LAB DNS Exfil simulation domain"; dns.query; content:".exfil.lab.invalid"; endswith; nocase; classtype:bad-unknown; sid:4200008; rev:1;)

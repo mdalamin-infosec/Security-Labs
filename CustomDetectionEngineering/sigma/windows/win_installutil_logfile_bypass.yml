@@ -1,0 +1,25 @@
+title: InstallUtil Suspicious Logfile Suppression
+id: 381a3c23-ef9a-58df-8c2b-2c45413e8a72
+status: experimental
+description: Flags installutil suspicious logfile suppression for triage; behavior-based, not proof of compromise.
+author: Custom Detection Engineering Lab
+date: '2026-10-14'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: \installutil.exe
+    CommandLine|contains: /logfile=
+  condition: selection
+fields:
+- Image
+- CommandLine
+- ParentImage
+- User
+- Computer
+falsepositives:
+- Developers may use InstallUtil during deployment.
+level: medium
+tags:
+- attack.t1218.004
