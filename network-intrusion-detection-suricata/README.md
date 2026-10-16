@@ -73,7 +73,7 @@ performed during cleanup.
 | --- | --- |
 | Shell syntax | Both scripts passed `bash -n` |
 | Rule inventory | Four custom SIDs, 1000001–1000004 |
-| Existing evidence | Six [screenshot files](docs/screenshots/); provenance/sanitization review remains TODO |
+| Existing evidence | Six [reviewed legacy screenshots](docs/screenshots/README.md); several show only capture commands, not results |
 | Real-engine load and rule firing | TODO: test |
 | Detection rate / false-positive rate | TODO: measure |
 

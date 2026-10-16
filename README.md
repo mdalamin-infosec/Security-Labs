@@ -37,7 +37,7 @@ application dependencies.
 - Synthetic events, curated CVE examples and fixture scores are demonstrations,
   not measured operational findings. Recall, false-positive reduction,
   confirmed applicable CVEs and analyst time improvement are **TODO: measure**.
-- The six inherited IDS screenshots remain pending provenance/sanitization review.
+- The six inherited IDS screenshots are [described by their actual content](network-intrusion-detection-suricata/docs/screenshots/README.md); several show capture commands rather than test results. Their provenance remains pending.
   Source authorship and any adaptations also require the owner's confirmation.
 - Work only on an authorized lab scope. The deliberately vulnerable Rust app
   and unauthenticated Elastic lab are educational local services.
