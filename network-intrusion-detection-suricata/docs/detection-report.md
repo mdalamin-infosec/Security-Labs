@@ -5,7 +5,7 @@ Its stated objective was a VirtualBox Suricata lab and its example generator
 address was `192.168.56.103`. It contained no complete case-results table,
 packet corpus or measured performance.
 
-The existing six files in [screenshots](screenshots/) are retained. Their
+The original six files are retained; [the visual review](screenshots/README.md) identifies their actual content. Several display only screenshot-capture commands, while the last shows ping connectivity. Their
 presence does not establish when, how or by whom the displayed tests were run.
 
 TODO: personally confirm screenshot provenance/sanitization, run the exact
