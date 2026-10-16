@@ -1,0 +1,6 @@
+PASS: two built wheels installed in a separate environment and imported outside the repository
+PASS: packaged scanner demo fixtures, template, CSS and JavaScript; six HTTP test-client routes returned 200
+PASS: packaged ThreatWatch catalogue loaded eight signatures and its synthetic CLI completed
+Python: 3.12.14
+Boundary: in-process HTTP test client; no real browser, TCP listener, Nmap, NVD or Docker integration
+Exit status: 0
