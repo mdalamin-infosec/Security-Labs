@@ -1,13 +1,7 @@
-# Legacy detection report — incomplete evidence
+# Legacy detection report — superseded
 
-The imported report stopped inside an unfinished Kali environment code block.
-Its stated objective was a VirtualBox Suricata lab and its example generator
-address was `192.168.56.103`. It contained no complete case-results table,
-packet corpus or measured performance.
+This document is retained for history only. The imported report was incomplete and did not contain a full labeled case-results table or a defensible detection metric.
 
-The original six files are retained; [the visual review](screenshots/README.md) identifies their actual content. Several display only screenshot-capture commands, while the last shows ping connectivity. Their
-presence does not establish when, how or by whom the displayed tests were run.
+The current source of truth is [VALIDATION.md](VALIDATION.md), which records the owner-run 4/4 controlled live attack cohort and explicitly states that live benign FPR is not yet measured.
 
-TODO: personally confirm screenshot provenance/sanitization, run the exact
-[validation set](VALIDATION.md), and replace this note with a case-by-case
-write-up linked to actual sanitized evidence. No missing results were recreated.
+The legacy screenshots are catalogued in [screenshots/README.md](screenshots/README.md) and are not used to substantiate the current metrics.

@@ -1,39 +1,35 @@
 # Standalone IDS validation
 
-Recorded cleanup check: `bash -n src/monitor_alerts.sh src/response.sh` passed.
-All real-engine and response behavior below is **TODO: test**.
+## Completed owner-run live attack cohort
 
-## Exact live case set
-On the Kali VM, install `hping3`, `netcat-openbsd` and `iputils-ping`.
-Set `TARGET_IP` to the isolated Ubuntu target you control:
+Authorized isolated topology:
 
-```bash
-TARGET_IP=192.168.56.102
-ping -c 4 "$TARGET_IP"
-sudo hping3 -S -p 8080 -c 12 -i u100000 "$TARGET_IP"
-sudo hping3 -S -p 22 -c 1 "$TARGET_IP"
-nc -vz -w 2 "$TARGET_IP" 4444
+```text
+Kali source:   192.168.56.104
+Ubuntu target: 192.168.56.102
 ```
 
-Run cases separately, allowing threshold windows to expire. The expected
-relevant SIDs are 1000001, 1000002, 1000003 and 1000004 respectively.
-Additional SYN matches can occur when cases share a source/window. A closed
-destination port can still produce an alert because the sensor sees the probe.
+The retained live session evaluated four labeled cases and observed the expected SID for each:
 
-For a control, send one ordinary HTTP request to an authorized lab web service
-on port 80, in a separate fresh observation window. Record the target/service
-configuration; no HTTP service is supplied by this project. The broad rules can
-match benign activity. Do not invent a zero false-positive result.
+| Case | Expected SID | Result |
+| --- | ---: | --- |
+| ICMP | 1000001 | Detected |
+| SYN threshold | 1000002 | Detected |
+| TCP/22 | 1000003 | Detected |
+| TCP/4444 | 1000004 | Detected |
 
-## Evidence and response
-Record OS, Suricata build, interface, HOME_NET, rules hash, exact commands, case
-start/end times, packet loss and actual SIDs. Save a small sanitized EVE/PCAP
-excerpt with stable case labels under `sample-data/` only after reviewing it.
+Recorded metrics:
 
-Use the response script's log-only choice first. On a disposable VM, review the
-hardcoded protected IP, test the UFW command's exit status and verify the actual
-firewall state. Record the exact rollback for the test rule before blocking.
-No containment success is currently measured.
+```text
+TP=4
+FN=0
+Detection rate=4/4 (100%) for this controlled attack cohort
+```
 
-TODO: measure recall/FPR only with independent attack/benign labels and session
-counts. Four generated probes or six screenshots cannot establish efficacy.
+Raw EVE and ground-truth artifacts remain under ignored local `outputs/live/` paths.
+
+## What is not yet measured
+
+The retained live cohort contains no independently labeled benign sessions. Therefore live TN, FP and FPR are not claimed.
+
+Use [BENIGN_COHORT_PLAN.md](BENIGN_COHORT_PLAN.md) for the next validation step. Manual UFW response behavior also remains separate from detection validation.

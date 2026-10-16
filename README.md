@@ -3,6 +3,7 @@
 [![Python Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/python-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/python-validation.yml)
 [![Rust Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/rust-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/rust-validation.yml)
 [![Suricata Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/suricata-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/suricata-validation.yml)
+[![Repository Quality](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/repository-quality.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/repository-quality.yml)
 
 Cybersecurity engineering portfolio focused on SOC analysis, blue-team detection engineering, network monitoring, incident triage, vulnerability assessment, and secure-code review.
 
@@ -19,6 +20,8 @@ SKIP = 0
 ```
 
 Full results: [docs/RESULTS-LATEST.md](docs/RESULTS-LATEST.md)
+
+Engineering review: [Architecture](docs/ARCHITECTURE.md) · [Testing strategy](docs/TESTING_STRATEGY.md) · [Threat model](docs/THREAT_MODEL.md) · [Limitations](docs/LIMITATIONS.md) · [Roadmap](docs/ROADMAP.md)
 
 ## Portfolio Projects
 
@@ -93,10 +96,10 @@ Some live-lab checks depend on owner-retained local evidence that is intentional
 
 ## Technologies
 
-**Detection / SOC:** Suricata, Sigma, EVE JSON, MITRE ATT&CK, Elasticsearch, Kibana
-**Assessment:** Nmap, NVD, CPE, CVE analysis
-**Development:** Python, Bash, Rust, Cargo, Flask, SQLite
-**Lab / Infrastructure:** Debian Linux, Kali Linux, Ubuntu Server, Metasploitable2, VirtualBox, GitHub Actions
+- **Detection / SOC:** Suricata, Sigma, EVE JSON, MITRE ATT&CK, Elasticsearch, Kibana
+- **Assessment:** Nmap, NVD, CPE, CVE analysis
+- **Development:** Python, Bash, Rust, Cargo, Flask, SQLite
+- **Lab / Infrastructure:** Debian Linux, Kali Linux, Ubuntu Server, Metasploitable2, VirtualBox, GitHub Actions
 
 ## Evidence and Claim Boundaries
 
@@ -120,3 +123,7 @@ Raw packet captures, databases, runtime output, local environments, credentials,
 Active scanning and attack simulation are performed only against isolated systems owned by or explicitly authorized for the operator.
 
 The projects are designed for defensive security engineering, validation, and portfolio demonstration.
+
+## Reviewer Notes
+
+The strongest evidence in this repository is intentionally easy to audit: the generated results table identifies what was synthetic, what was executed through a real engine, what came from a controlled live VM lab, and what remains unmeasured. Future work is tracked separately in the roadmap so completed results are not mixed with planned claims.

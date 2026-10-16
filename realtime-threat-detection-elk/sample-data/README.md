@@ -1,12 +1,7 @@
-# Synthetic scenarios
+# Sample data
 
-[cases.json](cases.json) describes the inputs constructed by
-[make_pcap.py](../tests/pcap/make_pcap.py). The `relevant_sid` fields are intended
-test expectations, not observed alerts or a claim that attacks succeeded.
-The generated PCAP and engine output belong under ignored `outputs/`.
+`cases.json` defines controlled lab cases used by the replay tooling. Synthetic demo data is suitable for deterministic parser/triage tests; it is not production telemetry.
 
-The CLI's separate offline EVE demo is explicitly tagged `synthetic-demo` by
-[demo.py](../src/threatwatch/demo.py). It is synthetic input, not captured traffic.
+Owner lifecycle CSVs and raw EVE remain under ignored local `outputs/` paths. Only sanitized excerpts should be committed.
 
-TODO: run the real-engine replay and the Compose ingestion path, retaining actual
-sanitized EVE records and per-case results before publishing detection metrics.
+The next evidence upgrade is the full end-to-end Elastic/Kibana path documented in `docs/LIVE_PIPELINE_VALIDATION.md`.

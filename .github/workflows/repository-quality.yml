@@ -1,0 +1,33 @@
+name: Repository quality gates
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  hygiene:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Repository hygiene policy
+        run: python tools/repository_quality.py
+      - name: Shell syntax
+        shell: bash
+        run: |
+          while IFS= read -r -d '' f; do
+            bash -n "$f"
+          done < <(find . -type f -name '*.sh' -not -path './.git/*' -print0)
+      - name: Python syntax
+        run: |
+          python -m compileall -q \
+            enterprise-vulnerability-scanner/src \
+            enterprise-vulnerability-scanner/tests \
+            realtime-threat-detection-elk/src \
+            realtime-threat-detection-elk/tests \
+            sigma-suricata-detection-rules/tools \
+            sigma-suricata-detection-rules/tests \
+            network-intrusion-detection-suricata/tools \
+            tools

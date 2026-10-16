@@ -26,7 +26,7 @@ secure-code-review training.
 
 # Review Methodology
 
-Current evidence is static source inspection and comparison of the vulnerable and partially remediated implementations. Cargo compilation, Clippy and HTTP regression checks are TODO: test; this cleanup did not have a Rust runtime. See [validation](VALIDATION.md). Severity labels below are qualitative review judgments, not measured CVSS scores.
+Current evidence includes static source inspection plus owner-run `cargo check --locked` and Clippy passes for both variants. HTTP runtime regression remains separate and is not yet retained. See [validation](VALIDATION.md). Severity labels below are qualitative review judgments, not measured CVSS scores.
 
 ---
 

@@ -1,27 +1,54 @@
-# Cleanup validation evidence
+# Validation model and current evidence
 
-Environment: Ubuntu 24.04.3 LTS; Python 3.12.14. These are checks executed in the
-cleanup environment, not a statement that the owner already repeated the labs.
+This repository separates four evidence classes so that a passing test is not presented as a production-security claim:
 
-| Check | Recorded outcome | Evidence / reproduction |
+1. **Automated source/unit validation** — deterministic tests and build/lint checks.
+2. **Synthetic fixture validation** — labeled events or PCAPs created for the lab.
+3. **Controlled live-lab validation** — owner-run traffic or scans inside an isolated VirtualBox network.
+4. **Operational claims** — production efficacy, exploitability, and organization-wide analyst productivity. These are **not** established by this repository.
+
+## Latest owner-run result
+
+The generated source of truth is [RESULTS-LATEST.md](RESULTS-LATEST.md).
+
+```text
+PASS=16
+FAIL=0
+SKIP=0
+```
+
+Key retained measurements from the latest owner run:
+
+| Area | Evidence class | Current result |
 | --- | --- | --- |
-| Sigma unit suite | 4 tests passed | [Run output](../sigma-suricata-detection-rules/docs/validation-run.txt); `python -m unittest discover -s tests -v` |
-| ThreatWatch unit suite | 32 tests passed | [Run output](../realtime-threat-detection-elk/docs/validation-run.txt); same command from its project |
-| NetSentry unit suite | 34 tests passed | [Run output](../enterprise-vulnerability-scanner/docs/validation-run.txt); same command from its project |
-| Synthetic Sigma evaluator | All 38 fixture expectations matched | `python tools/evaluate_sigma.py --output outputs/sigma-metrics.json` from the Sigma project |
-| Offline ThreatWatch CLI | 21 synthetic alerts, 5 grouped incidents, 1 beacon lead | `python -m threatwatch demo --data-dir outputs/demo-data --report-dir outputs/demo-reports` |
-| Offline scanner/export | Demo retained 4 hosts, 8 services, 4 unique example CVEs, 6 endpoint instances, 3 service reviews | Project README demo/export commands; `demo: true` |
-| Python packaging | Both wheels built, separately installed, and exercised outside the repo; catalogue and scanner resources available | [Actual packaging record](packaging-run.txt); `python -m build --wheel` in each Python package |
-| Flask wheel resources | Six in-process HTTP routes returned 200 | Same packaging record; not a browser/TCP integration test |
-| Dependency consistency | `pip check` passed | In the cleanup virtual environment |
-| Shell/config/source syntax | Checked during final review | Syntax parsing does not execute the configured services |
+| Sigma unit suite | Automated | 4 tests passed |
+| Sigma labeled fixture evaluation | Synthetic | 20/20 attack fixtures detected; 18 benign fixtures evaluated |
+| Suricata PCAP replay | Real engine + synthetic PCAP | 8/8 attack cases detected; 0/4 benign false positives |
+| Standalone NIDS | Controlled live lab | 4/4 labeled attack scenarios detected; no live benign cohort yet |
+| ThreatWatch | Automated + synthetic | 32 tests; 21 alerts grouped into 5 incidents |
+| ThreatWatch lifecycle timing | Owner-measured lab workflow | 5 before-playbook + 5 with-playbook incidents; second-scale timings |
+| NetSentry | Controlled live lab | 23 open services; 296 unique NVD/CPE CVE candidates; 8/8 eligible services checked |
+| Rust review | Automated build/lint + source review | `cargo check --locked` and Clippy passed for both variants; HTTP runtime regression remains separate |
 
-Scapy 2.8.0 was installed, but both PCAP generators failed during Linux netlink
-socket initialization with `PermissionError: [Errno 1] Operation not permitted`.
-Suricata, Docker, Nmap and Rust were absent. Package installation for Suricata
-was blocked by this runtime's OS permission constraints. None of those missing
-runtime checks is reported as passed.
+## Reproduction
 
-Operational metrics remain TODO: measure. The root GitHub workflows declare
-future checks; their existence does not establish a successful remote CI run.
-An independent fresh shallow clone with a separate environment also passed all 70 unit tests; [its actual output](fresh-clone-run.txt) is retained. The full owner-run checklist is [TODO.md](TODO.md).
+From the repository root:
+
+```bash
+chmod +x run_all_security_results.sh
+./run_all_security_results.sh
+```
+
+A clean public clone can reproduce the committed offline portions. Some live checks depend on owner-retained evidence under ignored `outputs/` directories and therefore may report a different status on another machine until the same authorized lab is recreated.
+
+GitHub Actions independently exercises the committed Python, Rust and Suricata/offline-PCAP paths. CI does not reproduce the owner's private VirtualBox topology.
+
+## Claim boundaries
+
+- A fixture percentage is a fixture percentage, not an operational detection rate.
+- A controlled VM-lab result applies only to the labeled cases retained for that run.
+- A CPE/NVD match is a **CVE candidate**, not proof that the target is vulnerable or exploitable.
+- The ThreatWatch 5-vs-5 timing exercise is a small workflow measurement, not a general productivity claim.
+- The live standalone NIDS cohort contains attack cases only; therefore live false-positive rate is not measured.
+
+See [TESTING_STRATEGY.md](TESTING_STRATEGY.md), [LIMITATIONS.md](LIMITATIONS.md), and [ROADMAP.md](ROADMAP.md) for the next evidence upgrades.

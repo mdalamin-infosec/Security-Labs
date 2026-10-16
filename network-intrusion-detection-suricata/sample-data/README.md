@@ -1,9 +1,7 @@
-# Evidence intake
+# Sample-data policy
 
-No raw packet capture or EVE/fast.log sample is included in this project yet.
-Existing images are in [docs/screenshots](../docs/screenshots/); they are not a labeled packet corpus.
+The owner-run live NIDS evidence is retained locally under ignored `outputs/live/` paths because raw EVE can contain environment-specific network data.
 
-TODO: capture the four controlled cases in [validation](../docs/VALIDATION.md),
-sanitize addresses/payloads, and record capture conditions, rule SIDs, tool
-versions, commands and SHA-256 hashes. Retain only a small relevant excerpt.
-Never replace missing evidence with made-up log output.
+Public sample data should be added only after sanitization and should preserve stable case IDs, labels and the minimum fields needed to reproduce metric calculations.
+
+Current public documentation records the measured 4/4 attack result while explicitly leaving live benign FPR unmeasured.
