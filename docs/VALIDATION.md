@@ -24,4 +24,4 @@ runtime checks is reported as passed.
 
 Operational metrics remain TODO: measure. The root GitHub workflows declare
 future checks; their existence does not establish a successful remote CI run.
-The full owner-run checklist is [TODO.md](TODO.md).
+An independent fresh shallow clone with a separate environment also passed all 70 unit tests; [its actual output](fresh-clone-run.txt) is retained. The full owner-run checklist is [TODO.md](TODO.md).

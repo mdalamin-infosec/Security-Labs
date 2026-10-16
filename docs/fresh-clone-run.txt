@@ -1,0 +1,23 @@
+Fresh independent shallow clone of cleanup branch; separate virtual environment; editable installs from that clone.
+Command per project: python -m unittest discover -s tests -v
+
+sigma-suricata-detection-rules
+----------------------------------------------------------------------
+Ran 4 tests in 0.027s
+
+OK
+Exit status: 0
+
+realtime-threat-detection-elk
+----------------------------------------------------------------------
+Ran 32 tests in 0.018s
+
+OK
+Exit status: 0
+
+enterprise-vulnerability-scanner
+----------------------------------------------------------------------
+Ran 34 tests in 0.114s
+
+OK
+Exit status: 0
