@@ -4,8 +4,8 @@
 # Suricata IDS Response Mechanism
 # Lab use only
 
-ALERT_LOG="/var/log/suricata/fast.log"
-RESPONSE_LOG="$HOME/suricata_response.log"
+ALERT_LOG="${ALERT_LOG:-/var/log/suricata/fast.log}"
+RESPONSE_LOG="${RESPONSE_LOG:-$HOME/suricata_response.log}"
 
 echo "========================================"
 echo " CodeAlpha Suricata Response Mechanism"

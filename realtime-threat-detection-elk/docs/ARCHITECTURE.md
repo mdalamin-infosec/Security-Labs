@@ -10,10 +10,10 @@ network interface --> Suricata 7 (local.rules) --> eve.json --> Filebeat --> Ela
 
 | Component | Role | Notes |
 | --- | --- | --- |
-| Suricata | Passive IDS. Inspects traffic on one interface and writes alerts, flows, DNS and HTTP events as EVE JSON | Runs with host networking and `NET_ADMIN`, `NET_RAW`. Loads only `suricata/rules/local.rules` (`-S`) |
+| Suricata | Passive IDS. Inspects traffic on one interface and writes alerts, flows, DNS and HTTP events as EVE JSON | Runs with host networking and `NET_ADMIN`, `NET_RAW`. Loads only `src/threatwatch/data/local.rules` (`-S`) |
 | Filebeat | Tails `eve.json`, parses each line as JSON, sets `@timestamp` from the event time | Index pattern `threatwatch-eve-YYYY.MM.DD`, ILM disabled for the lab |
 | Elasticsearch | Stores events for search and aggregation | Single node, security disabled, bound to 127.0.0.1 |
-| Kibana | Discover, saved searches, dashboards | `kibana/setup_kibana.py` creates the data view and triage dashboard |
+| Kibana | Discover, saved searches, dashboards | `scripts/setup_kibana.py` creates the data view and triage dashboard |
 | `threatwatch` | Offline Python tooling: rule catalogue, alert grouping and scoring, beacon leads, metrics | Standard library only; reads EVE files, never touches the network |
 
 ## Trust boundaries

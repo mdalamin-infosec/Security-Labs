@@ -1,0 +1,20 @@
+%YAML 1.1
+---
+# Offline fixtures only. Use the packaged classification/reference files.
+# Pass -S rules/suricata/custom.rules and -l <output-directory> explicitly.
+vars:
+  address-groups:
+    HOME_NET: "[192.168.1.0/24]"
+    EXTERNAL_NET: "[198.51.100.0/24]"
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+app-layer:
+  protocols:
+    http: {enabled: yes}
+    dns: {enabled: yes}
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types: [alert]

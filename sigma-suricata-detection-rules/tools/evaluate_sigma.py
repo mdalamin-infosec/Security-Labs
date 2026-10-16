@@ -14,7 +14,7 @@ BASE = Path(__file__).resolve().parents[1]
 
 def load_rules():
     rules=[]
-    for p in sorted((BASE/'sigma').rglob('*.yml')):
+    for p in sorted((BASE/'rules/sigma').rglob('*.yml')):
         with p.open(encoding='utf-8') as stream:
             doc=yaml.safe_load(stream)
         if not isinstance(doc,dict) or not {'title','id','logsource','detection'} <= doc.keys():
@@ -88,7 +88,7 @@ def metrics(rows):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--events',type=Path,default=BASE/'tests/fixtures/sigma_events.jsonl')
+    parser.add_argument('--events',type=Path,default=BASE/'sample-data/sigma_events.jsonl')
     parser.add_argument('--output',type=Path,default=None,help='Optional metrics JSON output')
     a=parser.parse_args()
     rules=load_rules()

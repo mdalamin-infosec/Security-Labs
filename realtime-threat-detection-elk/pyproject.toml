@@ -13,4 +13,8 @@ dependencies = []
 threatwatch = "threatwatch.cli:main"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["threatwatch*"]
+
+[tool.setuptools.package-data]
+threatwatch = ["data/*.rules"]

@@ -17,7 +17,7 @@ The included demo data is synthetic and tagged `synthetic-demo`. Results on a re
 
 - **8 custom Suricata rules** (SID 9000001 to 9000008) covering SSH brute force, port scans, host sweeps, scanner user-agents, cleartext credentials, DNS anomalies, directory traversal and Telnet. Each rule carries ATT&CK technique, tactic, severity and playbook metadata.
 - **Rules proven to fire:** `tests/pcap/run_suricata_pcap.sh` replays a synthetic pcap through Suricata and checks every SID alerts and a benign control does not.
-- **Live pipeline** via `docker-compose.yml`: Suricata, Filebeat, Elasticsearch and Kibana, with loopback-only ports.
+- **Live pipeline** via `configs/docker-compose.yml`: Suricata, Filebeat, Elasticsearch and Kibana, with loopback-only ports.
 - **Kibana setup script** creating a data view, six saved searches and a triage dashboard.
 - **Incident triage:** alerts grouped per source, scored with a documented formula (P1 to P4), with escalation when reconnaissance is followed by an access attempt.
 - **Beacon leads:** regular outbound callbacks found from flow timing (coefficient of variation), as a hunting lead rather than a verdict.
@@ -40,7 +40,7 @@ The demo writes synthetic events to `data/` and reports to `reports/demo-inciden
 ```bash
 cp .env.example .env            # set SURICATA_IFACE to your lab interface (ip -br a)
 docker compose up -d
-python kibana/setup_kibana.py
+python scripts/setup_kibana.py
 TARGET=<lab-ip> I_OWN_THIS_LAB=yes scripts/generate_lab_traffic.sh
 ```
 

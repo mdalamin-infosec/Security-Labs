@@ -7,7 +7,7 @@ An **experimental SOC / Blue-Team lab** with 15 Sigma process-creation detection
 ## Layout
 
 ```
-CustomDetectionEngineering/
+sigma-suricata-detection-rules/
 ├── sigma/windows/                # 13 process-creation Sigma YAML rules
 ├── sigma/linux/                  # 2 process-creation Sigma YAML rules
 ├── suricata/custom.rules        # 8 HTTP/DNS signatures (SIDs 4200001..4200008)

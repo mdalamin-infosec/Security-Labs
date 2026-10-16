@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ALERT_LOG="/var/log/suricata/fast.log"
+ALERT_LOG="${ALERT_LOG:-/var/log/suricata/fast.log}"
 
 echo "========================================"
 echo " CodeAlpha Suricata Live Alert Monitor"

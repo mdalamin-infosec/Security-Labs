@@ -22,7 +22,7 @@ Expect `PASS` for all eight SIDs and for the benign control.
 ```bash
 cp .env.example .env     # set SURICATA_IFACE
 docker compose up -d
-python kibana/setup_kibana.py
+python scripts/setup_kibana.py
 ```
 
 Allow a minute for Elasticsearch and Kibana. Use `docs/VALIDATION.md` first-run checklist to confirm each step.

@@ -1,0 +1,11 @@
+[
+  {"case_id":"icmp-burst","input":"12 ICMP echo packets","relevant_sid":9000003},
+  {"case_id":"syn-burst","input":"35 SYN packets to ports 1000 through 1034","relevant_sid":9000002},
+  {"case_id":"ssh-connections","input":"6 SYN packets to TCP 22; no login attempts","relevant_sid":9000001},
+  {"case_id":"scanner-user-agent","input":"HTTP sqlmap user-agent","relevant_sid":9000004},
+  {"case_id":"cleartext-basic-auth","input":"HTTP Basic header containing demo credentials","relevant_sid":9000005},
+  {"case_id":"long-dns-label","input":"DNS query with a 45-character label","relevant_sid":9000006},
+  {"case_id":"traversal-request","input":"HTTP request containing ../../etc/passwd","relevant_sid":9000007},
+  {"case_id":"telnet-connection","input":"Established TCP 23 session carrying login: text","relevant_sid":9000008},
+  {"case_id":"benign-dns","input":"www.example.test from 192.168.56.21","relevant_sid":null}
+]
