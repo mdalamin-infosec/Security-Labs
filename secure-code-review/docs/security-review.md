@@ -26,12 +26,7 @@ secure-code-review training.
 
 # Review Methodology
 
-The review used:
-
-1. Manual source-code inspection
-2. Cargo compiler checks
-3. Cargo Clippy static analysis when available
-4. Comparison of vulnerable and remediated implementations
+Current evidence is static source inspection and comparison of the vulnerable and partially remediated implementations. Cargo compilation, Clippy and HTTP regression checks are TODO: test; this cleanup did not have a Rust runtime. See [validation](VALIDATION.md). Severity labels below are qualitative review judgments, not measured CVSS scores.
 
 ---
 
