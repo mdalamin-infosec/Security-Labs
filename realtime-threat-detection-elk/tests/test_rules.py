@@ -24,7 +24,7 @@ class RuleCatalogueTests(unittest.TestCase):
             self.assertIn("rev:", line)
 
     def test_every_playbook_name_has_a_section_in_the_playbook_document(self):
-        text = (Path(DEFAULT_RULES).parents[2] / "docs" / "INCIDENT_RESPONSE_PLAYBOOK.md").read_text()
+        text = (Path(__file__).resolve().parents[1] / "docs" / "INCIDENT_RESPONSE_PLAYBOOK.md").read_text()
         for rule in load_catalogue().values():
             self.assertIn(f"`{rule.playbook}`", text, rule.playbook)
 

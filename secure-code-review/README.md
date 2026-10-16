@@ -1,237 +1,107 @@
-# Secure Coding Review — Rust Web API
+# Secure code review: Rust web APIs
 
-A hands-on secure-code-review lab with two Rust **Actix-web + SQLite** REST APIs: `vulnerable_app`, containing intentionally unsafe code, and `secure_app`, which demonstrates selected remediations. The steps below explain **exactly what to install and how to run it from a new laptop/PC**.
+## Objective
+Compare a deliberately vulnerable Actix-web/SQLite application with a partially
+remediated counterpart. Review application-level security despite memory-safe
+Rust. No CVE discovery or production security certification is claimed.
 
-> **Safety:** `vulnerable_app` is deliberately insecure and must **never** be exposed to public networks. Both programs bind to `127.0.0.1` in the supplied source. Use only in an authorized local training environment.
-
-## Project objectives
-
-- Install a Rust development toolchain and build these apps from source.
-- Observe common SQL injection, command injection, password storage, secret, and data-exposure flaws in source code.
-- Compare the insecure patterns with parameterized SQL, Argon2 password-hash verification, validation, and shell-free process calls.
-- Run simple endpoint checks and document **remaining security limitations**.
-
-## What software you need
-
-| Dependency | Required? | Purpose |
-| --- | --- | --- |
-| **Debian/Ubuntu Linux** | Recommended environment | Build and run this documented setup; Linux `ping` arguments used in source |
-| Git | Yes | Clone source repository |
-| Rust toolchain (`rustc`, `cargo`) | Yes | Compile and run Rust code |
-| Clippy (`cargo clippy`) | Recommended | Static lint checks (not a security certification) |
-| `build-essential` | Yes on typical Linux builds | C compiler/linker for Rust native dependencies (bundled SQLite) |
-| `curl` | Yes for the test commands | Call local HTTP endpoints |
-| `iputils-ping` | Yes for the `/ping` demonstrations | System `ping` executable launched by both applications |
-| `sqlite3` CLI | Optional | Examine local SQLite tables |
-| `pkg-config`, `libssl-dev` | Recommended development tools | Common native library build prerequisites; not necessarily used by every locked crate |
-
-**Compatibility:** These commands target Debian 13 / current Ubuntu desktop or server releases. Windows users can run a Debian/Ubuntu VM or WSL2. The network IDS project is better suited to **actual VMs**, not WSL2 packet capture.
-
-## Project layout
-
-```text
-SecureCodingReview/
-├── README.md
-├── vulnerable_app/
-│   ├── Cargo.toml
-│   ├── Cargo.lock
-│   └── src/main.rs
-├── secure_app/
-│   ├── Cargo.toml
-│   ├── Cargo.lock
-│   └── src/main.rs
-└── security_report.md
+## Architecture
+```mermaid
+flowchart TD
+  A["Local curl test cases"] --> B["Vulnerable API: 127.0.0.1:8080"]
+  A --> C["Partial remediation: 127.0.0.1:8081"]
+  B --> D["Demo SQLite accounts"]
+  C --> E["Empty secure-user table"]
 ```
 
-**Generated on first run:** `vulnerable_app/demo_users.db`, `secure_app/secure_users.db`, and `target/` build directories. Do not commit them.
+## Environment
+| Component | Status |
+| --- | --- |
+| Intended host | Debian/Ubuntu Linux; Linux `ping` arguments are used |
+| Rust/Cargo/Clippy | TODO: record versions and run; unavailable in the cleanup runtime |
+| Dependency versions | Locked separately in each application's committed `Cargo.lock` |
+| Source review | Static inspection only; both original `main.rs` files were preserved |
 
-## Setup from a fresh PC or laptop
-
-### Step 1 — Install Linux packages
-
-**On Debian/Ubuntu Linux (not inside a Windows command prompt):**
-
+## Setup
 ```bash
-sudo apt update
-sudo apt install -y git curl build-essential pkg-config libssl-dev \
-  iputils-ping sqlite3
+sudo apt-get update
+sudo apt-get install -y git curl build-essential pkg-config libssl-dev iputils-ping
+git clone https://github.com/mdalamin-infosec/Security-Labs.git
+cd Security-Labs/secure-code-review
 ```
-
-### Step 2 — Install stable Rust + Cargo + Clippy
-
-**Recommended official rustup installation:**
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-Follow the on-screen install prompt. This command executes an installer downloaded from the official Rust project; review its contents first if required by your organization's security policy. **Do not run the Rust installer with `sudo`.**
-
-Load Rust into this terminal and install/check tools:
-
+Install Rust/Cargo with [official rustup instructions](https://rust-lang.org/tools/install/),
+then load the toolchain and add Clippy:
 ```bash
 . "$HOME/.cargo/env"
-rustup default stable
-rustup component add clippy rustfmt
-rustc --version
+rustup component add clippy
+rustc -Vv
 cargo --version
-cargo clippy --version
 ```
 
-`rustup` installs the toolchain in your user account. If Rust is already installed and working, do **not** run the installer again; check `rustc --version` and `cargo --version` first. The `Cargo.lock` files determine specific crate versions; a current stable toolchain is recommended. Internet access is required for first-time crate downloads.
-
-### Step 3 — Clone the repository
-
+## How to run
+Terminal A, from this project directory:
 ```bash
-git clone https://github.com/mdalamin-infosec/Security-Labs.git
-cd Security-Labs/SecureCodingReview
-ls vulnerable_app/Cargo.toml secure_app/Cargo.toml
-```
-
-If the repository is already on your PC, skip `git clone` and `cd` into **`Security-Labs/SecureCodingReview/`**. All following relative commands assume you are in this folder unless they explicitly use `cd`.
-
-### Step 4 — Compile both apps and run lint checks
-
-```bash
-cargo check --locked --manifest-path vulnerable_app/Cargo.toml
-cargo check --locked --manifest-path secure_app/Cargo.toml
-cargo clippy --locked --manifest-path vulnerable_app/Cargo.toml
-cargo clippy --locked --manifest-path secure_app/Cargo.toml
-```
-
-`cargo check` detects compile errors without building a final binary. `cargo clippy` provides lint guidance but cannot prove that a program is secure. If `--locked` reports that a lockfile needs updating, **investigate and explicitly update dependencies** rather than silently changing a reproducible dependency set. Avoid committing generated `target/` files.
-
-### Step 5 — Run the deliberately vulnerable version
-
-**Terminal A** (in the `SecureCodingReview` folder):
-
-```bash
-cd vulnerable_app
+cd src/vulnerable-app
 cargo run --locked
 ```
 
-Expected: app listens on `http://127.0.0.1:8080` and creates **`demo_users.db` in the working directory**. The code seeds two **insecure demo accounts**; their credentials are intentionally weak and should never be reused.
+Terminal B, from this project directory:
+```bash
+cd src/secure-app
+APP_SECRET=local-demo-only cargo run --locked
+```
+Databases are created relative to the process working directory. Both apps bind
+to loopback. Stop them with Ctrl+C. The environment secret is read but does not
+implement sessions/authentication; a development fallback also remains.
 
-**Terminal B** (same Linux system):
+## How I validated it
+Cleanup compared the preserved source paths and reviewed the SQL and subprocess
+sinks. Compilation, Clippy and endpoint behavior are **TODO: test**, not passed.
+Run the following on the actual Linux lab:
 
 ```bash
-curl -i http://127.0.0.1:8080/
-curl -i 'http://127.0.0.1:8080/user?id=1'
+cargo check --locked --manifest-path src/vulnerable-app/Cargo.toml
+cargo check --locked --manifest-path src/secure-app/Cargo.toml
+cargo clippy --locked --manifest-path src/vulnerable-app/Cargo.toml
+cargo clippy --locked --manifest-path src/secure-app/Cargo.toml
 ```
 
-For review, note that `/user` discloses a stored password in this deliberately vulnerable demonstration. **Do not use real personal data.** To stop the running server, press `Ctrl+C` in Terminal A.
+[The exact endpoint cases](docs/VALIDATION.md) cover health, disclosure, SQL
+injection, invalid IPs and controlled shell-input handling. Record real HTTP
+responses and exit status before claiming a demonstrated remediation.
 
-### Step 6 — Run the partially remediated version
-
-**Terminal A** (start from the `SecureCodingReview` directory, or navigate to it):
-
-```bash
-cd secure_app
-export APP_SECRET='local-demo-only-replace-me'
-cargo run --locked
-```
-
-Expected: app listens on `http://127.0.0.1:8081` and creates an **empty** `secure_users.db` SQLite database in its working directory.
-
-**Terminal B:**
-
-```bash
-curl -i http://127.0.0.1:8081/health
-curl -i 'http://127.0.0.1:8081/ping?host=127.0.0.1'
-curl -i 'http://127.0.0.1:8081/user?id=1'
-```
-
-Expected:
-
-- `GET /health`: HTTP 200, `{"status":"healthy"}`.
-- `GET /ping?host=127.0.0.1`: HTTP 200 with `ping` result if system `ping` is installed and can execute.
-- `GET /user?id=1`: **HTTP 404 on a fresh DB**, because no users are seeded.
-- `GET /login?...`: **HTTP 401 on a fresh DB** for the same reason. No sign-up route or provisioning script is included, so a successful login is **not** reproducible from the current repository without adding valid Argon2-hashed user provisioning.
-
-**Important:** The secure demo loads an optional `APP_SECRET`, but still falls back to a development placeholder and does not show a complete production secret-management implementation.
-
-### Step 7 — Optional database inspection
-
-Use a *new terminal* and run these commands from the `SecureCodingReview` folder:
-
-```bash
-sqlite3 vulnerable_app/demo_users.db '.tables'
-sqlite3 secure_app/secure_users.db '.tables'
-```
-
-Do this **after** running each program once. On a fresh clone, those `.db` files do not exist; `sqlite3` may otherwise create an unintended empty file.
-
-### Step 8 — Compare code and findings
-
-```bash
-diff -u vulnerable_app/src/main.rs secure_app/src/main.rs | less
-cat security_report.md
-```
-
-Exit `less` with `q`. Compare user-controlled HTTP input into SQL statements, subprocess calls, and responses. This is a code-review exercise; it is not an audited authentication service.
-
-## Endpoint reference
-
-| Endpoint | Vulnerable app (`8080`) | Remediated app (`8081`) |
-| --- | --- | --- |
-| `/` | Demo landing page | Demo landing page |
-| `/login?username=...&password=...` | Vulnerable SQL construction, plaintext password comparison | Parameterized SQL and Argon2 verification; **no default users** |
-| `/user?id=1` | Exposes password | Returns username/ID only **if a user exists**, but lacks authorization |
-| `/ping?host=127.0.0.1` | Builds a shell command from input | Parses IP and invokes `ping` directly (but still permits arbitrary IP destinations) |
-| `/debug-info` | Exposes an embedded demo secret | Route removed |
-| `/health` | Not provided | JSON health check |
-
-**Never send real passwords through these GET request URLs.** Query-string credentials can be recorded in logs/history. They exist here to show risky design patterns, including one that persists in the supposedly secure example.
-
-## Troubleshooting
-
-| Symptom | Fix/check |
+## Results
+| Source-supported observation | Evidence |
 | --- | --- |
-| `cargo: command not found` | Run `. "$HOME/.cargo/env"`, reopen shell, confirm Rust installation |
-| `linker 'cc' not found` | Install `build-essential` |
-| Cargo cannot download crates | Check Internet, certificate/proxy configuration, crates.io access |
-| `Address already in use` | `ss -ltnp | grep -E ':8080|:8081'`; stop the other process or use a separate lab VM |
-| `/ping` fails | `command -v ping`; ensure `iputils-ping` installed |
-| Secure `/login` returns 401 | Expected on a fresh database: no seeded user and no registration endpoint |
-| `secure_users.db` seems missing | App creates it relative to **current working directory**; start from `secure_app/` |
-| `cargo clippy` has findings | Record the warnings; lint suggestions do not replace security assessment |
+| SQL string interpolation changed to parameter binding | [Two source trees](src/) |
+| Shell command construction changed to IP parsing and direct `ping` arguments | [Review](docs/security-review.md) |
+| Password response field removed; Argon2 verification added | Source comparison; hash provisioning absent |
+| Successful build, lint and endpoint regression | TODO: test |
+| Successful login against the remediated app | TODO: implement and test synthetic Argon2 user provisioning |
+| Complete security remediation | Not established; the limitations below remain |
 
-## Security findings
+## Limitations
+The remediated demo still sends credentials in GET query strings. `/user` lacks
+authentication/authorization. No enrollment, seeded hash, session management or
+rate limiting exists. Valid arbitrary IPs remain accepted by `/ping`.
+`APP_SECRET` is unused in an authentication mechanism and has a placeholder
+fallback. Startup database failures can still terminate the program. These
+weaknesses make the application a learning exercise, not a deployable login
+service. Deliberately weak accounts in the vulnerable version are demo-only.
 
-| Finding | Insecure implementation | Remediation demonstrated |
+## MITRE ATT&CK mapping
+CWE identifies weaknesses more directly; ATT&CK below is possible attacker
+behavior, not an observed campaign or a claim of executed tests.
+
+| Reviewed issue | CWE | Contextual ATT&CK |
 | --- | --- | --- |
-| SQL injection | SQL string interpolation | Parameterized `rusqlite::params!` |
-| Credential storage | Plaintext stored in SQLite | Argon2 hash **verification** (hash provisioning absent) |
-| Shell injection | `sh -c` with user input | Parse IP, invoke `ping` without a shell |
-| Embedded secret | Hardcoded source constant, debug route | Read env var and remove debug route |
-| Sensitive data leak | Returns password from `/user` | Omits password from response |
-| Weak validation | String ID and limited constraints | Integer ID and basic validation |
+| SQL interpolation in an exposed application | CWE-89 | [T1190](https://attack.mitre.org/techniques/T1190/) if deployed publicly; these demos are loopback-only |
+| Shell execution with request input | CWE-78 | [T1059.004](https://attack.mitre.org/techniques/T1059/004/) |
+| Embedded demo secret in source | CWE-798 | [T1552.001](https://attack.mitre.org/techniques/T1552/001/) source-file exposure context |
+| Missing authorization / GET credentials | CWE-862 / CWE-598 | No direct technique asserted from the weakness alone |
 
-See [Security Review Report](security_report.md) for narrative findings and recommendations.
-
-## Important remaining security gaps
-
-Despite its name, `secure_app` is **not production-ready**:
-
-- Login still uses **GET query parameters** instead of an HTTPS-protected POST body.
-- The `/user` endpoint has **no authentication or authorization**.
-- No user enrollment, seeded Argon2 password hashes, session management, or rate limiting is provided.
-- `APP_SECRET` permits an insecure placeholder fallback and is not applied to a demonstrated authentication mechanism.
-- `/ping` accepts arbitrary valid IP addresses; this is still an outbound-network/SSRF-style risk without an allowlist and rate limiting.
-- Database failures are handled more carefully, but there is no comprehensive automated security-test suite.
-- Secure defaults would additionally require TLS, least privilege, secrets management, logging without sensitive data, and dependency security review.
-
-## Reproducibility and cleanup
-
-- First build may take time and disk space because Cargo downloads and compiles crates.
-- The supplied `Cargo.lock` files should be kept; `target/` and generated SQLite databases should **not** be committed.
-- To remove temporary build outputs, run from `SecureCodingReview/`:
-
-```bash
-cargo clean --manifest-path vulnerable_app/Cargo.toml
-cargo clean --manifest-path secure_app/Cargo.toml
-```
-
-- Stop running servers with `Ctrl+C` in their terminal. The generated `.db` files contain **only local demo data** if you have not added your own records; back up anything needed before deleting them.
-
-**Official references:** [Rust installation](https://www.rust-lang.org/tools/install) · [Cargo book](https://doc.rust-lang.org/cargo/) · [Rust book](https://doc.rust-lang.org/book/)
+## References
+- [Cargo book](https://doc.rust-lang.org/cargo/).
+- [Actix-web](https://actix.rs/), [rusqlite](https://docs.rs/rusqlite/), [Argon2 crate](https://docs.rs/argon2/).
+- [MITRE CWE](https://cwe.mitre.org/), [static review](docs/security-review.md),
+  [personal TODOs](../docs/TODO.md), [interview questions](../docs/INTERVIEW_QUESTIONS.md).

@@ -1,80 +1,124 @@
-# Real-Time Network Threat Detection & Incident Monitoring System
+# Suricata and Elastic Stack threat triage
 
-**ThreatWatch Lab** is a small, reproducible detection pipeline: Suricata inspects traffic with custom rules, Filebeat ships the alerts to Elasticsearch, Kibana provides triage views, and a Python toolkit groups alerts into prioritised incidents, flags beacon-like callbacks, and records response timing. An incident response playbook ties each alert to a first-15-minutes procedure.
+## Objective
+Build a lab pipeline from network alerts to searchable events and explainable
+incident grouping. The Python analyst tooling also runs offline without Docker.
 
-| Project attribute | Value |
-| --- | --- |
-| Software version | 1.0.0 |
-| Sensor | Suricata 7 (passive IDS) with 8 custom rules mapped to MITRE ATT&CK |
-| Pipeline | Filebeat, Elasticsearch 8.15, Kibana 8.15 (Docker Compose) |
-| Analyst tooling | Python 3.11+, standard library only |
-| Intended scope | Authorised lab networks and private IPv4 ranges |
-| License | MIT |
-
-The included demo data is synthetic and tagged `synthetic-demo`. Results on a real network require separately collected traffic and analyst validation.
-
-## Implemented capabilities
-
-- **8 custom Suricata rules** (SID 9000001 to 9000008) covering SSH brute force, port scans, host sweeps, scanner user-agents, cleartext credentials, DNS anomalies, directory traversal and Telnet. Each rule carries ATT&CK technique, tactic, severity and playbook metadata.
-- **Rules proven to fire:** `tests/pcap/run_suricata_pcap.sh` replays a synthetic pcap through Suricata and checks every SID alerts and a benign control does not.
-- **Live pipeline** via `docker-compose.yml`: Suricata, Filebeat, Elasticsearch and Kibana, with loopback-only ports.
-- **Kibana setup script** creating a data view, six saved searches and a triage dashboard.
-- **Incident triage:** alerts grouped per source, scored with a documented formula (P1 to P4), with escalation when reconnaissance is followed by an access attempt.
-- **Beacon leads:** regular outbound callbacks found from flow timing (coefficient of variation), as a hunting lead rather than a verdict.
-- **Incident response playbook** for five scenarios with analysis, containment, recovery and closure criteria.
-- **Response metrics tool** computing median time to triage and close per cohort from your own incident records.
-- **32 offline unit tests** and CI that also validates the rules with Suricata.
-
-## Quick start: offline demo (no Docker, no Suricata)
-
-```bash
-cd realtime-network-threat-detection
-python3 -m unittest discover -s tests
-python3 -m threatwatch demo
+## Architecture
+```mermaid
+flowchart TD
+  A["Visible lab traffic"] --> B["Suricata"]
+  B --> C["EVE JSON"]
+  C --> D["Filebeat and Elasticsearch"]
+  D --> E["Kibana"]
+  C --> F["Python triage and beacon leads"]
 ```
 
-The demo writes synthetic events to `data/` and reports to `reports/demo-incidents.md` and `.json`. It produces 5 incidents (2 at P1) from 21 alerts and one beacon lead to `203.0.113.50:8443`.
+## Environment
+| Component | Recorded status |
+| --- | --- |
+| Cleanup runtime | Ubuntu 24.04.3 LTS; Python 3.12.14 |
+| Python CLI | Standard library; Python 3.11 or newer; install the local package |
+| Declared live stack | Elastic/Filebeat/Kibana 8.15.3; Suricata 7.0.7 |
+| Docker/live stack | Not run here; version support and compatibility remain TODO |
+| Evidence | [32-test run](docs/validation-run.txt); [installed-wheel check](../docs/packaging-run.txt) |
 
-## Quick start: live stack
+The image tags are inherited lab pins, not a recommendation of their current
+support/security status. Review and test version changes before live use.
 
+## Setup
 ```bash
-cp .env.example .env            # set SURICATA_IFACE to your lab interface (ip -br a)
-docker compose up -d
-python kibana/setup_kibana.py
-TARGET=<lab-ip> I_OWN_THIS_LAB=yes scripts/generate_lab_traffic.sh
+git clone https://github.com/mdalamin-infosec/Security-Labs.git
+cd Security-Labs/realtime-threat-detection-elk
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
 ```
 
-Then open http://127.0.0.1:5601, the **ThreatWatch - Alert triage** dashboard, and follow the [playbook](docs/INCIDENT_RESPONSE_PLAYBOOK.md). Export alerts for the triage tool with the EVE file in the `suricata-logs` volume. The traffic script refuses non-private targets and requires explicit confirmation.
+## How to run
+Offline synthetic demo:
+```bash
+python -m threatwatch demo --data-dir outputs/demo-data --report-dir outputs/demo-reports
+python -m threatwatch rules
+```
 
-## Command reference
+For your own sanitized EVE file:
+```bash
+python -m threatwatch triage path/to/eve.json --format markdown
+python -m threatwatch beacons path/to/eve.json
+```
 
-| Command | Purpose |
+Optional live Linux lab stack: install Docker Engine and the Compose plugin
+using [Docker's instructions](https://docs.docker.com/engine/install/). Find the
+actual capture interface with `ip -br link`, then set `SURICATA_IFACE` in the
+local file copied below. The sensor sees that interface's traffic only.
+
+```bash
+cp configs/.env.example configs/.env
+# Edit configs/.env before starting the stack.
+docker compose --env-file configs/.env -f configs/docker-compose.yml up -d
+python scripts/setup_kibana.py
+```
+
+Open [Kibana](http://127.0.0.1:5601). Live ingestion, event timestamps and dashboard
+creation remain TODO: test. Stop the stack with the same Compose flags and
+`down`; omit `--volumes` when retaining investigation data.
+See [Kibana guidance](docs/KIBANA_GUIDE.md).
+
+## How I validated it
+```bash
+python -m unittest discover -s tests -v
+```
+The retained run contains 32 passing tests for parsing, rule metadata, grouping,
+priority, beacon heuristics, metric arithmetic and CLI behavior. Both built
+Python wheels were also installed in a separate environment and used from
+outside this repository; the eight-rule catalogue remained available.
+
+[The exact synthetic cases](sample-data/cases.json) describe the PCAP generator.
+To test the actual engine on a suitable host:
+```bash
+python -m pip install -r ../sigma-suricata-detection-rules/requirements-pcap.txt
+bash tests/pcap/run_suricata_pcap.sh
+```
+This retains PCAP/config/EVE/build-info/log files under `outputs/replay.*`.
+It requires all eight SIDs and no alert for the benign DNS control. It is not a
+performance benchmark. See [validation](docs/VALIDATION.md).
+
+## Results
+| Check | Recorded result |
 | --- | --- |
-| `python -m threatwatch rules` | Print the rule catalogue read from `local.rules` |
-| `python -m threatwatch demo` | Synthetic events, triage, beacon leads, reports |
-| `python -m threatwatch triage <eve.json> [--format text\|json\|markdown]` | Group and score alerts |
-| `python -m threatwatch beacons <eve.json>` | List periodic outbound connection leads |
-| `python -m threatwatch metrics <records.csv> --baseline A --treatment B` | Triage and closure time summary |
+| Unit tests | 32 passed |
+| Synthetic offline CLI | 21 synthetic alerts grouped into 5 incidents, with 1 beacon lead |
+| Installed package | Packaged rule catalogue and offline CLI worked outside the checkout |
+| PCAP generation | Blocked here by a Scapy netlink-socket permission error |
+| Suricata replay / Compose / live Kibana | TODO: test |
+| Detection quality / time saved | TODO: measure |
 
-## Documentation set
+## Limitations
+The synthetic demo does not establish real malicious activity. Grouping and
+priority are heuristics; metadata-derived tactic labels are not verified attack
+sequences. Encrypted payloads are unavailable. SYN thresholds do not identify
+failed authentications or distinct-port scans. Long DNS labels have benign uses.
+The lab Compose stack disables authentication and binds exposed services to
+loopback. It uses Linux host networking for capture. No production hardening or
+Atomic Red Team execution is evidenced.
 
-| Document | Purpose |
-| --- | --- |
-| [Quick start](START_HERE.md) | Setup and publishing |
-| [Architecture](docs/ARCHITECTURE.md) | Data flow, trust boundaries, design decisions, limits |
-| [Detection rules](docs/DETECTION_RULES.md) | Rule catalogue, false positives, change procedure |
-| [Incident response playbook](docs/INCIDENT_RESPONSE_PLAYBOOK.md) | Triage routine and scenario playbooks |
-| [Kibana guide](docs/KIBANA_GUIDE.md) | Dashboard setup, fields, hunting queries |
-| [Metrics](docs/METRICS.md) | How to measure triage time fairly |
-| [Validation record](docs/VALIDATION.md) | What was tested and what was not |
-| [Incident record template](docs/templates/INCIDENT_RECORD_TEMPLATE.md) | Per-incident evidence and timestamps |
-| [Security policy](SECURITY.md) | Operating boundaries |
-| [Change log](CHANGELOG.md) | History |
+## MITRE ATT&CK mapping
+These are contextual mappings carried by rule metadata, not complete detections.
 
-## Limits
+| SID | Signal | Mapping and boundary |
+| --- | --- | --- |
+| 9000001 | SSH SYN burst | [T1110](https://attack.mitre.org/techniques/T1110/) candidate context; requires authentication logs |
+| 9000002 | SYN burst | [T1046](https://attack.mitre.org/techniques/T1046/) context; rule does not count unique ports |
+| 9000003 | ICMP echo burst | [T1018](https://attack.mitre.org/techniques/T1018/) context |
+| 9000004 | Scanner user-agent | [T1595](https://attack.mitre.org/techniques/T1595/) context; user-agent is spoofable |
+| 9000005 | Cleartext Basic header | [T1040](https://attack.mitre.org/techniques/T1040/) exposure context; no sniffing adversary is proven |
+| 9000006 | Long DNS label | [T1071.004](https://attack.mitre.org/techniques/T1071/004/) candidate context; no C2 proof |
+| 9000007 | Traversal-like URI | [T1190](https://attack.mitre.org/techniques/T1190/) context; no successful exploit is proven |
+| 9000008 | Telnet connection | [T1021](https://attack.mitre.org/techniques/T1021/) context; authorized remote use also matches |
 
-- The IDS is passive and sees only its interface. Encrypted payloads are not inspected.
-- Thresholds are untuned lab defaults, and per-source thresholds miss distributed attacks.
-- The compose stack has no authentication and is for local use only.
-- The Compose stack and Kibana script were not run against live services in the build environment; see the [validation record](docs/VALIDATION.md) and first-run checklist.
-- No detection-rate or time-saved figure is claimed. Measure your own with the metrics tool.
+## References
+- [Suricata](https://docs.suricata.io/), [Elastic documentation](https://www.elastic.co/docs).
+- [Rule source](src/threatwatch/data/local.rules), [playbooks](docs/INCIDENT_RESPONSE_PLAYBOOK.md),
+  [measurement procedure](docs/METRICS.md).
+- [Personal TODOs](../docs/TODO.md) and [interview questions](../docs/INTERVIEW_QUESTIONS.md).

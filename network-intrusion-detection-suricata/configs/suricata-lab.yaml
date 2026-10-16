@@ -1,0 +1,20 @@
+%YAML 1.1
+---
+# Set HOME_NET to the actual IDS/target address in your isolated lab.
+# Pass -S rules/local.rules, -i <lab-interface>, and -l <output-directory>.
+vars:
+  address-groups:
+    HOME_NET: "[192.168.56.102/32]"
+    EXTERNAL_NET: "!$HOME_NET"
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types: [alert]

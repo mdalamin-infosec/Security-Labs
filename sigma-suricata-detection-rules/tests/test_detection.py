@@ -17,13 +17,13 @@ class DetectionTests(unittest.TestCase):
             self.assertIn(r['logsource']['product'],('windows','linux'))
             self.assertIn('condition',r['detection'])
     def test_suricata_rules_and_sids(self):
-        signatures=[line for line in (ROOT/'suricata/custom.rules').read_text().splitlines() if line.startswith('alert ')]
+        signatures=[line for line in (ROOT/'rules/suricata/custom.rules').read_text().splitlines() if line.startswith('alert ')]
         self.assertEqual(len(signatures),8)
         sids=[re.search(r'; sid:(\d+);',s).group(1) for s in signatures]
         self.assertEqual(len(sids),len(set(sids)))
     def test_synthetic_fixture_predictions(self):
         rules=load_rules()
-        cases=[json.loads(l) for l in (ROOT/'tests/fixtures/sigma_events.jsonl').read_text().splitlines()]
+        cases=[json.loads(l) for l in (ROOT/'sample-data/sigma_events.jsonl').read_text().splitlines()]
         for case in cases:
             with self.subTest(case_id=case['case_id']):
                 fired=any(matches(r,case) for _,r in rules)

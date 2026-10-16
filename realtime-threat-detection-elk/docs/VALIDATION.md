@@ -1,24 +1,49 @@
-# Validation Record
+# Current validation record
 
-| Check | Result | Limit |
-| --- | --- | --- |
-| Rule load: `suricata -T` with Suricata 7.0.3 | 8 rules loaded, 0 failed | Tested on 7.0.3; the compose file pins 7.0.7 |
-| Rule firing: `tests/pcap/run_suricata_pcap.sh` replays a synthetic pcap through Suricata | All 8 SIDs fired once; the benign DNS control produced no alert | Synthetic packets, not production traffic. Says nothing about false-positive rates |
-| Real EVE output through the triage tool | Suricata's own `eve.json` parsed with 0 skipped lines and produced 6 incidents | Single small pcap |
-| Unit tests: `python -m unittest discover -s tests` | 32 tests pass | Cover parsing, scoring, grouping, beacon logic, metrics, CLI and rule metadata |
-| YAML syntax: `docker-compose.yml`, `filebeat/filebeat.yml`, CI workflow | Parse without error | Parsing is not execution |
-| Script syntax: Python compile and `bash -n` | Pass | Not executed against live services |
+Verified cleanup runtime: Ubuntu 24.04.3 LTS, Python 3.12.14.
+[Actual unit output](validation-run.txt) contains 32 passing tests:
+`python -m unittest discover -s tests -v`.
 
-## Not validated
+The synthetic CLI completed and reported 21 alerts, five grouped incidents and
+one beacon lead. These are generated demo counts, not observed attack outcomes.
+[Installed-wheel evidence](../../docs/packaging-run.txt) verifies that the rule
+catalogue remains packaged and the CLI runs outside the checkout.
 
-- **The Docker Compose stack was not started** in the build environment (no Docker). Image tags, the Filebeat timestamp layout, the EVE field mapping in Elasticsearch, and healthchecks should be confirmed on first run.
-- **`kibana/setup_kibana.py` and `scripts/load_sample_to_es.py`** were checked for syntax only, not against a live Kibana or Elasticsearch.
-- **Detection performance** (detection rate, false-positive rate, analyst time saved) is not measured. Use `docs/METRICS.md` to measure it in your own environment.
-- Alert volumes and thresholds are untuned lab defaults.
+## Exact real-engine test set — TODO: test
+The [scenario manifest](../sample-data/cases.json) corresponds to
+`tests/pcap/make_pcap.py`: 12 ICMP packets, 35 SYN probes, six SSH SYNs,
+scanner HTTP user-agent, cleartext demo Basic header, traversal URI, Telnet
+session, long DNS label and benign DNS control.
 
-## First-run checklist
+From the project root:
+```bash
+python -m pip install -r ../sigma-suricata-detection-rules/requirements-pcap.txt
+bash tests/pcap/run_suricata_pcap.sh
+```
 
-1. `docker compose up -d` and confirm all four containers are running.
-2. `curl -s http://127.0.0.1:9200/_cat/indices` shows a `threatwatch-eve-*` index after traffic is generated.
-3. Run `scripts/generate_lab_traffic.sh` against your lab target; confirm alerts in Kibana Discover.
-4. Run `python kibana/setup_kibana.py` and open the dashboard.
+The script retains a unique `outputs/replay.*` directory containing input PCAP,
+engine build info, configuration, EVE and engine logs. The assertions require
+SIDs 9000001–9000008 and no alert from the benign DNS control source.
+This deliberately small corpus does not measure operational recall or FPR.
+
+During cleanup, the generator could not import Scapy's Linux interface module
+because opening a netlink socket was denied. Suricata was absent. Older
+unretained claims about Suricata 7.0.3, eight firing signatures or six incidents
+are not carried forward as current measured results.
+
+## End-to-end stack — TODO: test
+Copy/edit `configs/.env.example`, then run the Compose command in the README.
+Confirm the actual interface, engine version, file permissions, EVE output,
+Filebeat timestamp parsing, Elasticsearch `threatwatch-eve-*` index/mappings,
+and Kibana dashboard setup against live services. Also test
+`scripts/load_sample_to_es.py`; its synthetic import must remain clearly labeled.
+
+TODO: review inherited image pins for support/security and test compatible
+updates. The declared Suricata image is 7.0.7, not the historical 7.0.3 claim.
+
+## Operational metrics — TODO: measure
+Follow [METRICS.md](METRICS.md). Populate real lifecycle records with timezone-
+aware timestamps and case/cohort labels. Replay comparable case sets for both
+workflows. Report sample size and absolute median times alongside percentage
+changes. No triage-time improvement or operational detection percentage is
+measured by this repository.

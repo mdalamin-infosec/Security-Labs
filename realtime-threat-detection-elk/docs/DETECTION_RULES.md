@@ -1,6 +1,6 @@
 # Detection Rule Catalogue
 
-Rules live in `suricata/rules/local.rules` (SID 9000001 to 9000008). `python -m threatwatch rules` prints the catalogue from the same file.
+Rules live in `src/threatwatch/data/local.rules` (SID 9000001 to 9000008). `python -m threatwatch rules` prints the catalogue from the same file.
 
 | SID | Detects | ATT&CK | Severity | Playbook | Trigger |
 | --- | --- | --- | --- | --- | --- |

@@ -1,0 +1,45 @@
+Actual local test run
+UTC: 2026-10-16T00:48:43.745902+00:00
+OS: Linux-6.18.44-x86_64-with-glibc2.39
+Python: 3.12.14
+Command (project directory): python -m unittest discover -s tests -v
+Exit status: 0
+
+test_different_destinations_are_tracked_separately (test_beacon.BeaconTests.test_different_destinations_are_tracked_separately) ... ok
+test_internal_destinations_and_non_flow_events_are_ignored (test_beacon.BeaconTests.test_internal_destinations_and_non_flow_events_are_ignored) ... ok
+test_interval_outside_bounds_is_ignored (test_beacon.BeaconTests.test_interval_outside_bounds_is_ignored) ... ok
+test_irregular_traffic_is_not_flagged (test_beacon.BeaconTests.test_irregular_traffic_is_not_flagged) ... ok
+test_regular_callbacks_are_found (test_beacon.BeaconTests.test_regular_callbacks_are_found) ... ok
+test_too_few_connections_are_ignored (test_beacon.BeaconTests.test_too_few_connections_are_ignored) ... ok
+test_demo_command_produces_expected_incidents_and_beacon (test_cli_demo.DemoTests.test_demo_command_produces_expected_incidents_and_beacon) ... ok
+test_generated_events_are_deterministic_and_tagged_synthetic (test_cli_demo.DemoTests.test_generated_events_are_deterministic_and_tagged_synthetic) ... ok
+test_missing_input_returns_error_code (test_cli_demo.DemoTests.test_missing_input_returns_error_code) ... error: [Errno 2] No such file or directory: 'does-not-exist.json'
+ok
+test_triage_markdown_output_file (test_cli_demo.DemoTests.test_triage_markdown_output_file) ... ok
+test_alerts_are_sorted_and_non_alerts_ignored (test_eve.EveTests.test_alerts_are_sorted_and_non_alerts_ignored) ... ok
+test_internal_address_classification (test_eve.EveTests.test_internal_address_classification) ... ok
+test_malformed_lines_are_counted_not_fatal (test_eve.EveTests.test_malformed_lines_are_counted_not_fatal) ... ok
+test_timestamp_with_numeric_offset_becomes_utc (test_eve.EveTests.test_timestamp_with_numeric_offset_becomes_utc) ... ok
+test_missing_column_and_empty_file_are_rejected (test_metrics.MetricsTests.test_missing_column_and_empty_file_are_rejected) ... ok
+test_out_of_order_timestamps_are_rejected (test_metrics.MetricsTests.test_out_of_order_timestamps_are_rejected) ... ok
+test_summary_and_comparison_use_medians (test_metrics.MetricsTests.test_summary_and_comparison_use_medians) ... ok
+test_timestamp_without_timezone_is_rejected (test_metrics.MetricsTests.test_timestamp_without_timezone_is_rejected) ... ok
+test_unknown_cohort_is_rejected (test_metrics.MetricsTests.test_unknown_cohort_is_rejected) ... ok
+test_all_local_rules_load_with_complete_metadata (test_rules.RuleCatalogueTests.test_all_local_rules_load_with_complete_metadata) ... ok
+test_duplicate_sid_is_rejected (test_rules.RuleCatalogueTests.test_duplicate_sid_is_rejected) ... ok
+test_every_playbook_name_has_a_section_in_the_playbook_document (test_rules.RuleCatalogueTests.test_every_playbook_name_has_a_section_in_the_playbook_document) ... ok
+test_every_rule_line_is_well_formed (test_rules.RuleCatalogueTests.test_every_rule_line_is_well_formed) ... ok
+test_invalid_severity_is_rejected (test_rules.RuleCatalogueTests.test_invalid_severity_is_rejected) ... ok
+test_missing_metadata_is_rejected (test_rules.RuleCatalogueTests.test_missing_metadata_is_rejected) ... ok
+test_access_before_recon_gets_tactic_bonus_but_no_sequence_reason (test_triage.TriageTests.test_access_before_recon_gets_tactic_bonus_but_no_sequence_reason) ... ok
+test_priority_boundaries (test_triage.TriageTests.test_priority_boundaries) ... ok
+test_quiet_gap_splits_incidents_and_sources_stay_separate (test_triage.TriageTests.test_quiet_gap_splits_incidents_and_sources_stay_separate) ... ok
+test_recon_then_access_escalates_to_p1_with_reason (test_triage.TriageTests.test_recon_then_access_escalates_to_p1_with_reason) ... ok
+test_single_high_rule_is_p2_and_single_low_rule_is_p4 (test_triage.TriageTests.test_single_high_rule_is_p2_and_single_low_rule_is_p4) ... ok
+test_unknown_sid_uses_suricata_severity_and_is_flagged (test_triage.TriageTests.test_unknown_sid_uses_suricata_severity_and_is_flagged) ... ok
+test_volume_bonus_applies (test_triage.TriageTests.test_volume_bonus_applies) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.028s
+
+OK

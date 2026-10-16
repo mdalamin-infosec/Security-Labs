@@ -3,7 +3,7 @@
 | Document control | Value |
 | --- | --- |
 | Identifier | TW-IR-001 |
-| Applies to | ThreatWatch Lab 1.0.0, alerts from `suricata/rules/local.rules` |
+| Applies to | ThreatWatch Lab 1.0.0, alerts from `src/threatwatch/data/local.rules` |
 | Lifecycle terminology | NIST SP 800-61 Rev. 2: preparation, detection and analysis, containment/eradication/recovery, post-incident activity |
 | Audience | Analyst on duty in an authorised lab or small environment |
 
@@ -70,4 +70,4 @@ Keep the raw EVE lines, relevant packet captures, and server logs. Record hashes
 
 ## 5. Post-incident review
 
-Within a week of closing a P1 or P2: record what the sensor saw, what it missed, time to triage, and one change to the rules or playbook. Update `suricata/rules/local.rules` (increment `rev`), the CHANGELOG, and re-run `tests/pcap/run_suricata_pcap.sh`.
+Within a week of closing a P1 or P2: record what the sensor saw, what it missed, time to triage, and one change to the rules or playbook. Update `src/threatwatch/data/local.rules` (increment `rev`), the CHANGELOG, and re-run `tests/pcap/run_suricata_pcap.sh`.

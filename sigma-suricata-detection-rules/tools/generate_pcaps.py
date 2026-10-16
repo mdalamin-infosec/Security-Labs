@@ -13,7 +13,7 @@ def main():
     except ImportError as ex:
         raise SystemExit('Install PCAP tooling: python3 -m pip install -r requirements-pcap.txt') from ex
     output=BASE/'outputs/pcaps'; output.mkdir(parents=True,exist_ok=True)
-    cases=json.loads((BASE/'tests/fixtures/suricata_cases.json').read_text())
+    cases=json.loads((BASE/'sample-data/suricata_cases.json').read_text())
     for index,case in enumerate(cases):
         if case['type']=='dns':
             pkt=Ether()/IP(src='192.168.1.20',dst='198.51.100.53')/UDP(sport=53000+index,dport=53)/DNS(id=1234+index,rd=1,qd=DNSQR(qname=case['qname']))

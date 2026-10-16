@@ -2,10 +2,10 @@
 
 ## Setup
 
-1. Start the stack: `docker compose up -d`, wait until Kibana answers on http://127.0.0.1:5601.
+1. Start the stack: `docker compose --env-file configs/.env -f configs/docker-compose.yml up -d`, wait until Kibana answers on http://127.0.0.1:5601.
 2. Create the data view, saved searches and dashboard:
    ```bash
-   python kibana/setup_kibana.py
+   python scripts/setup_kibana.py
    ```
 3. No live traffic yet? Load the synthetic demo events:
    ```bash
