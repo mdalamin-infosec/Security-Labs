@@ -25,7 +25,7 @@ network interface --> Suricata 7 (local.rules) --> eve.json --> Filebeat --> Ela
 ## Design decisions
 
 - **One rules file is the source of truth.** MITRE technique, tactic, severity and playbook live in each rule's `metadata`. The triage tool reads them from the same file, so documentation, dashboards and scoring cannot disagree with the rules. Tests enforce complete metadata.
-- **Transparent scoring.** Priority comes from a short formula in `threatwatch/triage.py`, not a model. An analyst can explain why an incident is P1.
+- **Transparent scoring.** Priority comes from a short formula in `src/threatwatch/triage.py`, not a model. An analyst can explain why an incident is P1.
 - **Beacon detection lives outside Suricata.** Signatures are stateless per match; periodicity needs a view across many flow events, so it is a separate hunting lead with documented limits.
 - **Fail soft on bad input.** Malformed EVE lines are counted and skipped; unknown SIDs fall back to Suricata's own severity and are flagged.
 
