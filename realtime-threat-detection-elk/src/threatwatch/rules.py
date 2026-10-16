@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
-DEFAULT_RULES = Path(__file__).resolve().parent.parent / "suricata" / "rules" / "local.rules"
+DEFAULT_RULES = Path(__file__).resolve().parent / "data" / "local.rules"
 
 SEVERITY_WEIGHT = {"low": 1, "medium": 2, "high": 3}
 

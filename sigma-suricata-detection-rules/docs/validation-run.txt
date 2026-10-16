@@ -1,0 +1,16 @@
+Actual local test run
+UTC: 2026-10-16T00:48:43.727186+00:00
+OS: Linux-6.18.44-x86_64-with-glibc2.39
+Python: 3.12.14
+Command (project directory): python -m unittest discover -s tests -v
+Exit status: 0
+
+test_metrics (test_detection.DetectionTests.test_metrics) ... ok
+test_rule_counts_ids_and_structure (test_detection.DetectionTests.test_rule_counts_ids_and_structure) ... ok
+test_suricata_rules_and_sids (test_detection.DetectionTests.test_suricata_rules_and_sids) ... ok
+test_synthetic_fixture_predictions (test_detection.DetectionTests.test_synthetic_fixture_predictions) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.029s
+
+OK

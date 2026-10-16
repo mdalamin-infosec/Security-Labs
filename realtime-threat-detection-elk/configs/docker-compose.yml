@@ -37,7 +37,7 @@ services:
     # -S loads only the local rules. Add suricata-update later for broader coverage.
     command: ["-i", "${SURICATA_IFACE:-eth0}", "-S", "/etc/suricata/rules/local.rules", "-v"]
     volumes:
-      - ./suricata/rules/local.rules:/etc/suricata/rules/local.rules:ro
+      - ../src/threatwatch/data/local.rules:/etc/suricata/rules/local.rules:ro
       - suricata-logs:/var/log/suricata
     restart: unless-stopped
 
@@ -46,7 +46,7 @@ services:
     user: root
     command: ["filebeat", "-e", "--strict.perms=false"]
     volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - suricata-logs:/var/log/suricata:ro
     depends_on:
       elasticsearch:

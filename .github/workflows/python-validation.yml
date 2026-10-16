@@ -1,0 +1,39 @@
+name: Python offline validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [enterprise-vulnerability-scanner, realtime-threat-detection-elk, sigma-suricata-detection-rules]
+        python-version: ['3.11', '3.12', '3.13']
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install direct dependencies and the local package
+        run: |
+          python -m pip install -r requirements.txt
+          if [ -f pyproject.toml ]; then python -m pip install -e .; fi
+      - name: Run the actual offline test suite
+        run: python -m unittest discover -s tests -v
+      - name: Evaluate synthetic Sigma fixtures
+        if: matrix.project == 'sigma-suricata-detection-rules'
+        run: python tools/evaluate_sigma.py --output outputs/sigma-metrics.json
+      - name: Exercise the synthetic scanner CLI
+        if: matrix.project == 'enterprise-vulnerability-scanner'
+        run: |
+          python -m netsentry demo --db data/ci.sqlite3
+          python -m netsentry export --db data/ci.sqlite3 --output reports/demo.json
+      - name: Exercise the synthetic triage CLI
+        if: matrix.project == 'realtime-threat-detection-elk'
+        run: python -m threatwatch demo --data-dir data --report-dir reports

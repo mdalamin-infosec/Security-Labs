@@ -8,8 +8,8 @@ Hands-on, educational cybersecurity labs covering **network intrusion detection*
 
 | Lab | Purpose | What you need | Setup guide |
 | --- | --- | --- | --- |
-| [Network Intrusion Detection System](NetworkIntrusionDetectionSystem/README.md) | Detect lab ICMP, SYN bursts, SSH attempts, and TCP port 4444 using Suricata | VirtualBox, Ubuntu Server VM, Kali VM, Suricata, Bash | [Full installation, configuration, testing](NetworkIntrusionDetectionSystem/README.md#setup-from-a-fresh-pc-or-laptop) |
-| [Secure Coding Review](SecureCodingReview/README.md) | Compare intentionally vulnerable and partially remediated Rust REST APIs | Linux, Rust/Cargo, C compiler, curl, ping | [Full installation, build, execution, testing](SecureCodingReview/README.md#setup-from-a-fresh-pc-or-laptop) |
+| [Network Intrusion Detection System](network-intrusion-detection-suricata/README.md) | Detect lab ICMP, SYN bursts, SSH attempts, and TCP port 4444 using Suricata | VirtualBox, Ubuntu Server VM, Kali VM, Suricata, Bash | [Full installation, configuration, testing](network-intrusion-detection-suricata/README.md#setup-from-a-fresh-pc-or-laptop) |
+| [Secure Coding Review](secure-code-review/README.md) | Compare intentionally vulnerable and partially remediated Rust REST APIs | Linux, Rust/Cargo, C compiler, curl, ping | [Full installation, build, execution, testing](secure-code-review/README.md#setup-from-a-fresh-pc-or-laptop) |
 
 ## 2. PC/laptop requirements
 
@@ -54,14 +54,14 @@ Expected top-level directories:
 Security-Labs/
 ├── README.md
 ├── .gitignore
-├── NetworkIntrusionDetectionSystem/
+├── network-intrusion-detection-suricata/
 │   ├── README.md
 │   ├── rules/local.rules
 │   ├── scripts/monitor_alerts.sh
 │   ├── scripts/response.sh
 │   ├── reports/detection_report.md
 │   └── screenshots/
-└── SecureCodingReview/
+└── secure-code-review/
     ├── README.md
     ├── vulnerable_app/{Cargo.toml,src/main.rs}
     ├── secure_app/{Cargo.toml,src/main.rs}
@@ -81,7 +81,7 @@ Security-Labs/
 5. Validate with `sudo suricata -T -c /etc/suricata/suricata.yaml`, restart its service, then send authorized test packets from Kali to the Ubuntu IP.
 6. Monitor alerts in `/var/log/suricata/fast.log`. Optional manual firewall response is **not necessary** to demonstrate detection.
 
-**Use the detailed commands and troubleshooting notes in the [Suricata README](NetworkIntrusionDetectionSystem/README.md#setup-from-a-fresh-pc-or-laptop).**
+**Use the detailed commands and troubleshooting notes in the [Suricata README](network-intrusion-detection-suricata/README.md#setup-from-a-fresh-pc-or-laptop).**
 
 ### Path B: Rust secure code review (1 Linux machine/VM)
 
@@ -91,7 +91,7 @@ Security-Labs/
 4. Start the vulnerable version **on localhost port 8080**, and the remediated version **on localhost port 8081**.
 5. Use `curl` to check the documented endpoints. Inspect code and the security report to compare risks and remediations.
 
-**Use the detailed commands and troubleshooting notes in the [Rust README](SecureCodingReview/README.md#setup-from-a-fresh-pc-or-laptop).**
+**Use the detailed commands and troubleshooting notes in the [Rust README](secure-code-review/README.md#setup-from-a-fresh-pc-or-laptop).**
 
 ## 5. What you should see
 
@@ -101,7 +101,7 @@ Security-Labs/
 | Vulnerable Rust app | `curl http://127.0.0.1:8080/` returns a demonstration home page | Check compilation errors, port availability, and localhost binding |
 | Remediated Rust app | `curl http://127.0.0.1:8081/health` returns `{"status":"healthy"}` | Check build, environment, and port availability |
 
-**Known behavior:** The remediated Rust application creates an **empty user table** and has **no user-registration or seeding workflow**. A new installation therefore cannot demonstrate a successful login without extra, separately implemented user provisioning. See [limitations](SecureCodingReview/README.md#important-remaining-security-gaps).
+**Known behavior:** The remediated Rust application creates an **empty user table** and has **no user-registration or seeding workflow**. A new installation therefore cannot demonstrate a successful login without extra, separately implemented user provisioning. See [limitations](secure-code-review/README.md#important-remaining-security-gaps).
 
 ## 6. Security and maintenance notes
 
@@ -114,9 +114,9 @@ Security-Labs/
 
 ## 7. Reports and evidence
 
-- [Detection report](NetworkIntrusionDetectionSystem/reports/detection_report.md)
-- [Secure coding review report](SecureCodingReview/security_report.md)
-- [Network IDS screenshots](NetworkIntrusionDetectionSystem/screenshots/)
+- [Detection report](network-intrusion-detection-suricata/reports/detection_report.md)
+- [Secure coding review report](secure-code-review/security_report.md)
+- [Network IDS screenshots](network-intrusion-detection-suricata/screenshots/)
 
 ## 8. Authoritative references
 

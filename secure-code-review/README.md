@@ -30,7 +30,7 @@ A hands-on secure-code-review lab with two Rust **Actix-web + SQLite** REST APIs
 ## Project layout
 
 ```text
-SecureCodingReview/
+secure-code-review/
 ├── README.md
 ├── vulnerable_app/
 │   ├── Cargo.toml
@@ -84,11 +84,11 @@ cargo clippy --version
 
 ```bash
 git clone https://github.com/mdalamin-infosec/Security-Labs.git
-cd Security-Labs/SecureCodingReview
+cd Security-Labs/secure-code-review
 ls vulnerable_app/Cargo.toml secure_app/Cargo.toml
 ```
 
-If the repository is already on your PC, skip `git clone` and `cd` into **`Security-Labs/SecureCodingReview/`**. All following relative commands assume you are in this folder unless they explicitly use `cd`.
+If the repository is already on your PC, skip `git clone` and `cd` into **`Security-Labs/secure-code-review/`**. All following relative commands assume you are in this folder unless they explicitly use `cd`.
 
 ### Step 4 — Compile both apps and run lint checks
 
@@ -225,7 +225,7 @@ Despite its name, `secure_app` is **not production-ready**:
 
 - First build may take time and disk space because Cargo downloads and compiles crates.
 - The supplied `Cargo.lock` files should be kept; `target/` and generated SQLite databases should **not** be committed.
-- To remove temporary build outputs, run from `SecureCodingReview/`:
+- To remove temporary build outputs, run from `secure-code-review/`:
 
 ```bash
 cargo clean --manifest-path vulnerable_app/Cargo.toml

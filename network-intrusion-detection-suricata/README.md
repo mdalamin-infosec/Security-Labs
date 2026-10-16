@@ -121,7 +121,7 @@ cd Security-Labs/NetworkIntrusionDetectionSystem
 ls rules/local.rules scripts/monitor_alerts.sh scripts/response.sh
 ```
 
-If you already cloned the repository in Ubuntu, skip the `git clone` command and `cd` to its local location. All following relative paths assume your working directory is **`NetworkIntrusionDetectionSystem/`**.
+If you already cloned the repository in Ubuntu, skip the `git clone` command and `cd` to its local location. All following relative paths assume your working directory is **`network-intrusion-detection-suricata/`**.
 
 ### Step 5 — Install custom rules and edit Suricata settings
 
@@ -236,7 +236,7 @@ sudo ufw status numbered
 ## Project files
 
 ```text
-NetworkIntrusionDetectionSystem/
+network-intrusion-detection-suricata/
 ├── README.md
 ├── rules/local.rules                 # Four custom Suricata signatures
 ├── scripts/monitor_alerts.sh       # Prints matching fast.log events
