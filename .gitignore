@@ -1,0 +1,55 @@
+# Reproducible source and small sanitized fixtures belong in Git.
+# Runtime data, compiler output, local environments and secrets do not.
+build/
+dist/
+target/
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+
+# Local outputs, not reference documentation or sanitized sample-data.
+data/
+outputs/
+reports/
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.log
+*.pcap
+*.pcapng
+!**/sample-data/**/*.log
+!**/sample-data/**/*.pcap
+!**/sample-data/**/*.pcapng
+
+# Local secrets. Commit only placeholder examples.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+**/configs/lab.json
+**/configs/local.*
+
+# Editors and operating-system files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*~
+*.swp
