@@ -53,3 +53,4 @@ id_rsa
 Thumbs.db
 *~
 *.swp
+run_all_security_results.sh.backup.*
