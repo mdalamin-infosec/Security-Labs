@@ -1,69 +1,66 @@
-# Sigma and Suricata detection rules
+# Suricata Network IDS Lab
 
-## Objective
+A VM-based lab for observing custom Suricata alerts, reading EVE JSON and practicing
+manual response decisions. Four signatures provide simple traffic signals:
 
-Practice detection engineering with 15 Sigma process-creation rules, eight Suricata signatures, synthetic fixtures, and an actual offline Suricata replay. The project reports fixture/replay quality separately from operational efficacy.
-
-## Architecture
-
-```mermaid
-flowchart TD
-  A["38 labeled process events"] --> B["Restricted Sigma evaluator"]
-  C["12 HTTP and DNS cases"] --> D["PCAP generator"]
-  D --> E["Suricata offline replay"]
-  B --> F["Metrics"]
-  E --> F
-```
-
-## Current validated evidence
-
-| Check | Result |
+| SID | Matches |
 | --- | --- |
-| Unit tests | 4 passed |
-| Sigma synthetic corpus | 20/20 attack fixtures detected; 18 benign fixtures evaluated |
-| Synthetic FP tuning | Baseline FP 3 → tuned FP 0 on the bundled fixture corpus |
-| Suricata replay | 8/8 attack PCAPs detected |
-| Benign Suricata controls | 0/4 false positives |
-| Independent held-out operational dataset | Not yet measured |
+| 1000001 | ICMP traffic to `HOME_NET` |
+| 1000002 | A source reaching the SYN threshold: 10 packets in five seconds |
+| 1000003 | TCP traffic to port 22 |
+| 1000004 | TCP traffic to port 4444 |
 
-The Suricata replay is a real-engine test against synthetic PCAPs. The percentages above are not production detection rates.
+These signatures show packet visibility and rule behavior. The SYN threshold counts
+packets, not distinct destination ports. SSH, ICMP and port 4444 can be legitimate.
 
-## Setup
+## Start the sensor
 
-```bash
-git clone https://github.com/mdalamin-infosec/Security-Labs.git
-cd Security-Labs/sigma-suricata-detection-rules
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-## Run the Sigma fixture evaluator
+Install Suricata on the monitored Linux VM. Set `HOME_NET` in
+[the configuration](configs/suricata-lab.yaml) and select the actual lab interface.
+From this project directory:
 
 ```bash
-python tools/evaluate_sigma.py --output outputs/sigma-metrics.json
+mkdir -p outputs/config-check outputs/live
+export LAB_IFACE=enp0s8  # Replace with the actual host-only interface.
+sudo suricata -T -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/config-check
+sudo suricata -i "$LAB_IFACE" -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/live
 ```
 
-The 38 cases in `sample-data/sigma_events.jsonl` are hand-authored fixtures: 20 attack-labeled and 18 benign. They were designed with the rules and therefore are not held-out evidence.
+Keep the vulnerable lab isolated. The monitored VM must receive the test packets;
+a host-only switch does not automatically mirror traffic between other VMs.
 
-## Run the actual Suricata replay
+In another terminal, follow the generated alerts:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y suricata
-python -m pip install -r requirements-pcap.txt
-python tools/generate_pcaps.py
-python tools/replay_suricata.py --config configs/suricata-lab.yaml
+ALERT_LOG=outputs/live/fast.log bash src/monitor_alerts.sh
 ```
 
-The replay reads local PCAPs and sends no traffic. It performs a Suricata configuration test before replay and retains engine output under ignored `outputs/` paths.
+The optional [response script](src/response.sh) offers log-only or UFW actions after
+manual selection. Review the event and source before changing a firewall rule.
 
-## Limitations
+## Evaluate a recorded session
 
-- Full Sigma conversion and execution in an Elastic/Splunk backend remains a next step.
-- The fixture corpus is not independent held-out telemetry.
-- Command-line indicators can be evaded or triggered by legitimate administration.
-- HTTPS payloads are not visible to plaintext HTTP signatures without decryption/termination elsewhere.
-- ATT&CK mappings provide behavioral context, not proof of compromise.
+The existing Python script takes an EVE file, a CSV and an output path:
 
-See [validation](docs/VALIDATION.md), [held-out evaluation protocol](docs/HELD_OUT_EVALUATION.md), and the root [roadmap](../docs/ROADMAP.md).
+```bash
+python3 tools/evaluate_live.py outputs/live/eve.json outputs/live/ground_truth.csv outputs/live/metrics.json
+```
+
+CSV format:
+
+```csv
+case_id,label,expected_sid
+icmp-session,attack,1000001
+syn-session,attack,1000002
+```
+
+Populate this from your actual labeled session. **The current evaluator checks only
+whether each expected SID appears anywhere in the supplied log.** It does not match
+case timestamps or endpoints. Use fresh, isolated evidence for each case; a reused
+log can overstate the result. Benign false-positive scoring is not implemented.
+
+An earlier summary records 4/4 live scenarios, but raw EVE and ground truth were
+absent from the supplied archive. That result was not reproduced here. The next
+code milestone is endpoint/time-window matching with negative-case regression tests.
+
+[Rules](rules/local.rules) · [Existing validation notes](docs/VALIDATION.md) · [Benign cohort plan](docs/BENIGN_COHORT_PLAN.md)
