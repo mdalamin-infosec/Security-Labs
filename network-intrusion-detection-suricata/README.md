@@ -1,55 +1,66 @@
-# Network intrusion detection with Suricata
+# network-intrusion-detection-suricata
 
-## Objective
+A VM-based lab for observing custom Suricata alerts, reading EVE JSON and practicing
+manual response decisions. Four signatures provide simple traffic signals:
 
-Observe traffic sent to a monitored Linux lab target, apply four custom rules, and practice evidence-based alert review. An alert is a rule match; it does not establish compromise.
-
-## Architecture
-
-```mermaid
-flowchart TD
-  A["Kali 192.168.56.104"] --> B["VirtualBox host-only network"]
-  B --> C["Ubuntu 192.168.56.102 + Suricata"]
-  C --> D["EVE JSON / fast.log"]
-  D --> E["Ground-truth evaluator"]
-```
-
-## Current validated evidence
-
-| Check | Result |
+| SID | Matches |
 | --- | --- |
-| Shell syntax | 2 scripts passed `bash -n` |
-| Rule inventory | SIDs 1000001–1000004 |
-| Live attack cohort | 4/4 controlled scenarios detected; TP=4, FN=0 |
-| Live benign cohort / FPR | Not yet measured |
+| 1000001 | ICMP traffic to `HOME_NET` |
+| 1000002 | A source reaching the SYN threshold: 10 packets in five seconds |
+| 1000003 | TCP traffic to port 22 |
+| 1000004 | TCP traffic to port 4444 |
 
-The live run used the isolated Kali-to-Ubuntu host-only path. Evidence was retained locally as EVE JSON, ground truth, rules/configuration and computed metrics.
+These signatures show packet visibility and rule behavior. The SYN threshold counts
+packets, not distinct destination ports. SSH, ICMP and port 4444 can be legitimate.
 
-## Four live cases
+## Start the sensor
 
-- SID 1000001 — ICMP traffic
-- SID 1000002 — SYN threshold
-- SID 1000003 — TCP/22
-- SID 1000004 — TCP/4444
-
-The result applies only to these controlled cases. In particular, a ping, port 22 or port 4444 is not inherently malicious.
-
-## Setup and run
-
-On the authorized Ubuntu target, set `HOME_NET` and the host-only interface, validate configuration, then run Suricata in the foreground:
+Install Suricata on the monitored Linux VM. Set `HOME_NET` in
+[the configuration](configs/suricata-lab.yaml) and select the actual lab interface.
+From this project directory:
 
 ```bash
+mkdir -p outputs/config-check outputs/live
+export LAB_IFACE=enp0s8  # Replace with the actual host-only interface.
 sudo suricata -T -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/config-check
 sudo suricata -i "$LAB_IFACE" -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/live
 ```
 
-On the Kali VM, reproduce only inside the isolated lab. The exact cases and evidence fields are documented in [docs/VALIDATION.md](docs/VALIDATION.md).
+Keep the vulnerable lab isolated. The monitored VM must receive the test packets;
+a host-only switch does not automatically mirror traffic between other VMs.
 
-## Limitations
+In another terminal, follow the generated alerts:
 
-- The current live cohort has no labeled benign sessions, so live FPR is not available.
-- ICMP and SSH rules are intentionally broad learning signals.
-- The SYN rule counts packets by source, not distinct destination ports.
-- Optional response logic is not evidence of successful containment and should remain manual in a disposable lab.
+```bash
+ALERT_LOG=outputs/live/fast.log bash src/monitor_alerts.sh
+```
 
-See the [benign cohort plan](docs/BENIGN_COHORT_PLAN.md) and root [roadmap](../docs/ROADMAP.md).
+The optional [response script](src/response.sh) offers log-only or UFW actions after
+manual selection. Review the event and source before changing a firewall rule.
+
+## Evaluate a recorded session
+
+The existing Python script takes an EVE file, a CSV and an output path:
+
+```bash
+python3 tools/evaluate_live.py outputs/live/eve.json outputs/live/ground_truth.csv outputs/live/metrics.json
+```
+
+CSV format:
+
+```csv
+case_id,label,expected_sid
+icmp-session,attack,1000001
+syn-session,attack,1000002
+```
+
+Populate this from your actual labeled session. **The current evaluator checks only
+whether each expected SID appears anywhere in the supplied log.** It does not match
+case timestamps or endpoints. Use fresh, isolated evidence for each case; a reused
+log can overstate the result. Benign false-positive scoring is not implemented.
+
+An earlier summary records 4/4 live scenarios, but raw EVE and ground truth were
+absent from the supplied archive. That result was not reproduced here. The next
+code milestone is endpoint/time-window matching with negative-case regression tests.
+
+[Rules](rules/local.rules) · [Existing validation notes](docs/VALIDATION.md) · [Benign cohort plan](docs/BENIGN_COHORT_PLAN.md)
