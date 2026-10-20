@@ -1,46 +1,53 @@
-# Secure code review: Rust web APIs
+# Rust Application Security Review
 
-## Objective
+A CodeAlpha secure-coding exercise comparing a deliberately vulnerable Actix-web/
+SQLite application with a partially remediated version. It demonstrates how
+application-level security mistakes can remain in memory-safe code.
 
-Compare a deliberately vulnerable Actix-web/SQLite application with a partially remediated counterpart and demonstrate that memory-safe Rust does not remove application-layer security risks.
+## Findings and changes present in the source
 
-## Current validated evidence
+| Issue | Vulnerable implementation | Remediated implementation |
+| --- | --- | --- |
+| SQL injection | Interpolate request values into SQL | Bind Rusqlite parameters |
+| Command injection | Include input in `sh -c` | Parse an IP address and invoke `ping` directly |
+| Password handling | Store and compare plaintext passwords | Verify an existing Argon2 hash |
+| User-data disclosure | Return stored passwords from `/user` | Select only ID and username |
+| Debug disclosure | Expose configuration through `/debug-info` | Remove the endpoint |
 
-| Check | Result |
-| --- | --- |
-| `cargo check --locked` vulnerable app | PASS |
-| `cargo check --locked` secure app | PASS |
-| Clippy vulnerable app | PASS |
-| Clippy secure app | PASS |
-| Static source comparison | Retained |
-| Runtime HTTP regression | Not yet retained |
-| Successful secure-user login | Not claimed |
+[Vulnerable source](src/vulnerable-app/src/main.rs) · [Remediated source](src/secure-app/src/main.rs) · [Review report](docs/security-review.md)
 
-## Reviewed changes
+## Build and run
 
-- SQL interpolation → parameterized queries
-- shell command construction → parsed IP + direct process arguments
-- password field removed from user response
-- Argon2 verification path added
-- sensitive debug endpoint removed from the remediated variant
-
-These changes improve specific weaknesses but do not make the sample a production authentication service.
-
-## Run build/lint checks
+Install Rust/Cargo and a C build toolchain for bundled SQLite. From this directory:
 
 ```bash
 cargo check --locked --manifest-path src/vulnerable-app/Cargo.toml
 cargo check --locked --manifest-path src/secure-app/Cargo.toml
 cargo clippy --locked --manifest-path src/vulnerable-app/Cargo.toml
 cargo clippy --locked --manifest-path src/secure-app/Cargo.toml
+cargo run --locked --manifest-path src/vulnerable-app/Cargo.toml
 ```
 
-## Remaining runtime proof
+The vulnerable app listens on **127.0.0.1:8080**. Stop it with Ctrl+C; start the
+remediated variant using:
 
-The next milestone is an actual localhost HTTP regression run covering health, SQL-input handling, disclosure, invalid IP and controlled shell-input cases. See [HTTP_REGRESSION_PLAN.md](docs/HTTP_REGRESSION_PLAN.md).
+```bash
+cargo run --locked --manifest-path src/secure-app/Cargo.toml
+```
 
-## Limitations
+That variant listens on **127.0.0.1:8081**. Use disposable databases and synthetic
+credentials. Initial dependency resolution requires network access.
 
-The remediated demo still has intentional gaps: GET credentials, missing authorization/session/enrollment controls, a placeholder/fallback secret path, arbitrary valid IP ping targets, and startup failure paths. It is a learning artifact, not a deployable login service.
+## Remaining application work
 
-See [security review](docs/security-review.md), [validation](docs/VALIDATION.md), and the root [roadmap](../docs/ROADMAP.md).
+The remediated app creates a table but does not seed a valid Argon2 user. A successful
+login response also does not create a session. Credentials still travel in GET query
+parameters; `/user` and `/ping` lack authorization; parsed ping targets are unrestricted.
+The environment secret is unused and has a development fallback.
+
+The supplied validation notes record earlier Cargo/Clippy passes. Rust was unavailable
+in the documentation review environment, so no fresh build or HTTP pass is asserted.
+The next milestone is a temporary-database HTTP run covering valid/invalid login,
+SQL handling, response disclosure and ping input, followed by authorization fixes.
+
+[Existing validation record](docs/VALIDATION.md) · [HTTP regression plan](docs/HTTP_REGRESSION_PLAN.md)
