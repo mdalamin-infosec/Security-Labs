@@ -1,4 +1,4 @@
-# Rust Application Security Review
+# secure-code-review
 
 A CodeAlpha secure-coding exercise comparing a deliberately vulnerable Actix-web/
 SQLite application with a partially remediated version. It demonstrates how
