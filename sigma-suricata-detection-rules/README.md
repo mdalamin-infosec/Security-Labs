@@ -1,4 +1,4 @@
-# Sigma and Suricata Detection Rules
+# sigma-suricata-detection-rules
 
 A small detection-engineering collection: **15 Sigma process-creation rules** and
 **eight Suricata HTTP/DNS signatures**, with labeled examples for repeatable checks.
