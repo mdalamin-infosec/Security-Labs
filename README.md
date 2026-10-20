@@ -1,129 +1,57 @@
 # Security Labs
 
-[![Python Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/python-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/python-validation.yml)
-[![Rust Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/rust-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/rust-validation.yml)
-[![Suricata Validation](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/suricata-validation.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/suricata-validation.yml)
-[![Repository Quality](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/repository-quality.yml/badge.svg?branch=master)](https://github.com/mdalamin-infosec/Security-Labs/actions/workflows/repository-quality.yml)
+A cybersecurity portfolio covering service inventory, alert triage, detection rules
+and application security review. The projects combine Python tooling with small,
+controlled network and Rust exercises.
 
-Cybersecurity engineering portfolio focused on SOC analysis, blue-team detection engineering, network monitoring, incident triage, vulnerability assessment, and secure-code review.
+**Python · Flask · SQLite · Suricata · Sigma · Rust · GitHub Actions**
 
-The repository emphasizes **reproducible validation, retained evidence, explicit scope, and accurate claim boundaries**.
+## Projects
 
-## Validation Snapshot
-
-Latest owner-run unified validation:
-
-```text
-PASS = 16
-FAIL = 0
-SKIP = 0
-```
-
-Full results: [docs/RESULTS-LATEST.md](docs/RESULTS-LATEST.md)
-
-Engineering review: [Architecture](docs/ARCHITECTURE.md) · [Testing strategy](docs/TESTING_STRATEGY.md) · [Threat model](docs/THREAT_MODEL.md) · [Limitations](docs/LIMITATIONS.md) · [Roadmap](docs/ROADMAP.md)
-
-## Portfolio Projects
-
-| Project | Focus | Validated result |
+| Project | Purpose | Implementation to inspect |
 | --- | --- | --- |
-| [Sigma + Suricata](sigma-suricata-detection-rules/) | Detection engineering | 20/20 synthetic attacks detected; retained replay detected 8/8 attack cases with 0/4 benign false positives |
-| [Network IDS](network-intrusion-detection-suricata/) | Suricata IDS | 4/4 controlled live VM-to-VM attack scenarios detected |
-| [ThreatWatch / ELK](realtime-threat-detection-elk/) | Alert correlation and triage | 32 tests; 21 alerts correlated into 5 incidents; matched 5-vs-5 lifecycle measurement |
-| [NetSentry](enterprise-vulnerability-scanner/) | Vulnerability assessment | 23 open services; 296 unique CVE candidates; 8/8 eligible services checked |
-| [Secure Code Review](secure-code-review/) | Rust security review | Cargo check and Clippy validation passed for both application variants |
+| [NetSentry](enterprise-vulnerability-scanner/) | Collect scoped service inventory and turn NVD matches into a reviewable dashboard | [Scope validation](enterprise-vulnerability-scanner/src/netsentry/config.py), [report construction](enterprise-vulnerability-scanner/src/netsentry/analysis.py) |
+| [ThreatWatch](realtime-threat-detection-elk/) | Group Suricata alerts into prioritized incidents and identify periodic outbound flows | [Correlation](realtime-threat-detection-elk/src/threatwatch/triage.py), [beacon analysis](realtime-threat-detection-elk/src/threatwatch/beacon.py) |
+| [Sigma and Suricata rules](sigma-suricata-detection-rules/) | Test process and protocol indicators against labeled examples | [Sigma evaluator](sigma-suricata-detection-rules/tools/evaluate_sigma.py), [signatures](sigma-suricata-detection-rules/rules/suricata/custom.rules) |
+| [Network IDS](network-intrusion-detection-suricata/) | Observe four traffic patterns in an isolated VM network | [Rules](network-intrusion-detection-suricata/rules/local.rules), [session evaluator](network-intrusion-detection-suricata/tools/evaluate_live.py) |
+| [Rust security review](secure-code-review/) | Compare vulnerable code with specific remediation patterns | [Findings](secure-code-review/docs/security-review.md), [remediated source](secure-code-review/src/secure-app/src/main.rs) |
 
-## Engineering Highlights
+## Start with NetSentry
 
-### Detection Engineering
-
-Developed and validated Sigma and Suricata detection logic covering suspicious execution, HTTP attacks, DNS behavior, reconnaissance, authentication, and credential-related activity.
-
-Validation includes synthetic fixtures, false-positive tuning, controlled benign traffic, and actual Suricata-engine PCAP replay.
-
-### Network Detection
-
-Built a standalone Suricata IDS in an isolated VirtualBox lab.
-
-Four custom signatures were validated against four labeled live attack scenarios with retained EVE JSON and explicit ground truth.
-
-The retained live cohort does not include labeled benign sessions, so no live false-positive-rate claim is made.
-
-### Incident Triage
-
-Implemented ThreatWatch for alert grouping, priority scoring, MITRE ATT&CK context, playbook mapping, beacon analysis, and lifecycle measurement.
-
-A matched five-case before-playbook and five-case with-playbook measurement is retained locally. Because the timings are second-scale and the sample is small, the result is treated as a lab workflow measurement rather than a general productivity claim.
-
-### Vulnerability Assessment
-
-Implemented NetSentry with explicit scope controls, Nmap discovery, CPE extraction, NVD enrichment, CVE review, SQLite-backed storage, and JSON/CSV reporting.
-
-An authorized live Metasploitable2 assessment identified 23 open TCP services and 296 unique NVD CVE candidates across 8/8 eligible services.
-
-**CVE candidate does not mean confirmed exploitability.**
-
-### Secure Code Review
-
-Reviewed vulnerable and remediated Rust application variants using source review, locked Cargo builds, and Clippy checks.
-
-Compiler and linter success is treated as build-quality evidence, not proof of complete application security.
-
-## Repository Structure
-
-```text
-Security-Labs/
-├── .github/workflows/
-├── docs/
-├── enterprise-vulnerability-scanner/
-├── network-intrusion-detection-suricata/
-├── realtime-threat-detection-elk/
-├── secure-code-review/
-├── sigma-suricata-detection-rules/
-└── run_all_security_results.sh
-```
-
-## Run the Validation Suite
+From the repository root, with Python 3.11+:
 
 ```bash
-git clone https://github.com/mdalamin-infosec/Security-Labs.git
-cd Security-Labs
-chmod +x run_all_security_results.sh
-./run_all_security_results.sh
+python3 -m venv .venv
+. .venv/bin/activate
+cd enterprise-vulnerability-scanner
+python -m pip install -r requirements.txt -e .
+python -m netsentry demo
+python -m netsentry serve
 ```
 
-Some live-lab checks depend on owner-retained local evidence that is intentionally excluded from Git. GitHub Actions validates the reproducible offline portions of the repository.
+Open **http://127.0.0.1:8080**. The synthetic dataset contains four hosts, eight
+services and four unique CVE examples. Installation needs internet access; the demo
+itself works without Nmap, an API key or network access. Stop with Ctrl+C.
 
-## Technologies
+## What the projects demonstrate
 
-- **Detection / SOC:** Suricata, Sigma, EVE JSON, MITRE ATT&CK, Elasticsearch, Kibana
-- **Assessment:** Nmap, NVD, CPE, CVE analysis
-- **Development:** Python, Bash, Rust, Cargo, Flask, SQLite
-- **Lab / Infrastructure:** Debian Linux, Kali Linux, Ubuntu Server, Metasploitable2, VirtualBox, GitHub Actions
+- **Defensive programming:** explicit scan scope, safe XML parsing, bound database parameters and spreadsheet-safe CSV export.
+- **Analysis:** service-level lookup coverage, explainable incident priority and periodic-flow detection.
+- **Detection engineering:** rule metadata, labeled attack/benign fixtures and separate real-engine replay scripts.
+- **Security review:** tracing untrusted input to SQL and process execution, then comparing safer implementations.
 
-## Evidence and Claim Boundaries
+The three existing Python suites pass **70 tests**: NetSentry 34, ThreatWatch 32 and
+the Sigma harness 4. Their project READMEs include the commands to reproduce them.
+The Sigma fixture run detects 20 attack examples and leaves 18 benign examples quiet.
+ThreatWatch's synthetic demo groups 21 alerts into five incidents.
 
-```text
-synthetic fixture result
-!= controlled live-lab result
-!= production performance
+## Project status
 
-CVE candidate
-!= confirmed applicable vulnerability
-!= confirmed exploitability
+The Python demos are the quickest paths to inspect. Suricata replay needs the engine;
+live assessment needs authorized targets; the Elastic stack needs a separate integration
+run. Rust HTTP regression and authentication lifecycle work remain unfinished.
 
-small lab timing measurement
-!= organization-wide analyst productivity
-```
-
-Raw packet captures, databases, runtime output, local environments, credentials, and other unnecessary lab artifacts are excluded from Git.
-
-## Scope and Ethics
-
-Active scanning and attack simulation are performed only against isolated systems owned by or explicitly authorized for the operator.
-
-The projects are designed for defensive security engineering, validation, and portfolio demonstration.
-
-## Reviewer Notes
-
-The strongest evidence in this repository is intentionally easy to audit: the generated results table identifies what was synthetic, what was executed through a real engine, what came from a controlled live VM lab, and what remains unmeasured. Future work is tracked separately in the roadmap so completed results are not mixed with planned claims.
+Earlier live figures are recorded in [the supplied results summary](docs/RESULTS-LATEST.md).
+Its referenced raw outputs were absent from the archive and were not revalidated here.
+The current IDS evaluator checks SID presence within a log; see its README before
+interpreting a case-level detection percentage. Use these tools in authorized labs.
