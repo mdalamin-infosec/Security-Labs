@@ -1,66 +1,58 @@
-# Suricata Network IDS Lab
+# Sigma and Suricata Detection Rules
 
-A VM-based lab for observing custom Suricata alerts, reading EVE JSON and practicing
-manual response decisions. Four signatures provide simple traffic signals:
+A small detection-engineering collection: **15 Sigma process-creation rules** and
+**eight Suricata HTTP/DNS signatures**, with labeled examples for repeatable checks.
 
-| SID | Matches |
-| --- | --- |
-| 1000001 | ICMP traffic to `HOME_NET` |
-| 1000002 | A source reaching the SYN threshold: 10 packets in five seconds |
-| 1000003 | TCP traffic to port 22 |
-| 1000004 | TCP traffic to port 4444 |
+## Run the Sigma examples
 
-These signatures show packet visibility and rule behavior. The SYN threshold counts
-packets, not distinct destination ports. SSH, ICMP and port 4444 can be legitimate.
-
-## Start the sensor
-
-Install Suricata on the monitored Linux VM. Set `HOME_NET` in
-[the configuration](configs/suricata-lab.yaml) and select the actual lab interface.
-From this project directory:
+From this project directory, with Python 3.11+:
 
 ```bash
-mkdir -p outputs/config-check outputs/live
-export LAB_IFACE=enp0s8  # Replace with the actual host-only interface.
-sudo suricata -T -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/config-check
-sudo suricata -i "$LAB_IFACE" -c configs/suricata-lab.yaml -S rules/local.rules -l outputs/live
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python tools/evaluate_sigma.py --output outputs/sigma-metrics.json
 ```
 
-Keep the vulnerable lab isolated. The monitored VM must receive the test packets;
-a host-only switch does not automatically mirror traffic between other VMs.
+The existing suite passes **four tests**. The bundled corpus has 38 events: 20
+attack-labeled and 18 benign. The tuned evaluator matches all 20 attack examples
+and none of the 18 benign controls. Removing approved-parent suppressions produces
+three false positives in the defined baseline.
 
-In another terminal, follow the generated alerts:
+[Windows/Linux rules](rules/sigma/) · [Fixture events](sample-data/sigma_events.jsonl) · [Evaluator](tools/evaluate_sigma.py)
+
+## What the evaluator supports
+
+The Python harness handles the selections, boolean conditions and field modifiers
+used by these rules. It rejects unsupported constructs. This makes local regressions
+quick to inspect; deployment to an Elastic or Splunk backend needs separate conversion
+and execution checks. The fixtures were developed with the rules, so they measure
+regression behavior rather than performance on unseen operational logs.
+
+## Replay the Suricata signatures
+
+Install Suricata through your Linux distribution, then:
 
 ```bash
-ALERT_LOG=outputs/live/fast.log bash src/monitor_alerts.sh
+python -m pip install -r requirements-pcap.txt
+python tools/generate_pcaps.py
+python tools/replay_suricata.py --config configs/suricata-lab.yaml
 ```
 
-The optional [response script](src/response.sh) offers log-only or UFW actions after
-manual selection. Review the event and source before changing a firewall rule.
+The generator creates synthetic HTTP/DNS PCAPs. Replay validates the engine
+configuration, checks the labeled captures and retains engine output plus hashes
+under `outputs/`. This reads local captures and sends no traffic.
 
-## Evaluate a recorded session
+The engine replay was not rerun in the documentation review environment. Earlier
+8/8 attack and 0/4 benign replay figures are recorded in the supplied validation
+notes, but their raw replay outputs were absent from the archive.
 
-The existing Python script takes an EVE file, a CSV and an output path:
+## Next evaluation step
 
-```bash
-python3 tools/evaluate_live.py outputs/live/eve.json outputs/live/ground_truth.csv outputs/live/metrics.json
-```
+Freeze the rules, then test an untouched corpus containing legitimate administration
+and normal protocol traffic. Review missed cases and unexpected matches alongside raw
+counts. Plaintext HTTP signatures require visibility into HTTP; encrypted payloads
+need a separate visibility path.
 
-CSV format:
-
-```csv
-case_id,label,expected_sid
-icmp-session,attack,1000001
-syn-session,attack,1000002
-```
-
-Populate this from your actual labeled session. **The current evaluator checks only
-whether each expected SID appears anywhere in the supplied log.** It does not match
-case timestamps or endpoints. Use fresh, isolated evidence for each case; a reused
-log can overstate the result. Benign false-positive scoring is not implemented.
-
-An earlier summary records 4/4 live scenarios, but raw EVE and ground truth were
-absent from the supplied archive. That result was not reproduced here. The next
-code milestone is endpoint/time-window matching with negative-case regression tests.
-
-[Rules](rules/local.rules) · [Existing validation notes](docs/VALIDATION.md) · [Benign cohort plan](docs/BENIGN_COHORT_PLAN.md)
+[Existing validation notes](docs/VALIDATION.md) · [Held-out evaluation plan](docs/HELD_OUT_EVALUATION.md)
