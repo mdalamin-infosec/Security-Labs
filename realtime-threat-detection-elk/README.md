@@ -1,60 +1,57 @@
-# Suricata and Elastic Stack threat triage
+# realtime-threat-detection-elk
 
-## Objective
+An offline analyst CLI for Suricata EVE JSON. It groups related alerts, assigns an
+explainable incident priority and checks outbound flow timing for beacon-like patterns.
+An optional Elastic lab configuration supports exploring ingestion and investigation.
 
-Build an explainable SOC-style workflow from network alerts to grouped incidents, ATT&CK context, playbooks and lifecycle measurement. The Python analyst tooling runs offline; the full Elastic/Kibana pipeline remains a separate operational validation target.
+## Try it
 
-## Architecture
-
-```mermaid
-flowchart TD
-  A["Visible lab traffic"] --> B["Suricata"]
-  B --> C["EVE JSON"]
-  C --> D["ThreatWatch triage"]
-  C --> E["Filebeat"]
-  E --> F["Elasticsearch"]
-  F --> G["Kibana"]
-```
-
-## Current validated evidence
-
-| Check | Result |
-| --- | --- |
-| Unit tests | 32 passed |
-| Synthetic demo | 21 alerts → 5 incidents; 2 P1 incidents; 1 beacon lead |
-| Owner lifecycle cohorts | 5 before-playbook + 5 with-playbook |
-| Median triage change | 0.0% in the small replay |
-| Median close change | -33.3% in the small replay |
-| Full live Elastic/Kibana pipeline | Not yet retained as owner-run evidence |
-
-The timing cohort uses second-scale replay interactions and is intentionally **not** presented as a general analyst-productivity result.
-
-## Offline use
+From this project directory, with Python 3.11+:
 
 ```bash
-python -m threatwatch demo --data-dir outputs/demo-data --report-dir outputs/demo-reports
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+python -m threatwatch demo
 python -m threatwatch rules
-python -m threatwatch triage path/to/eve.json --format markdown
-python -m threatwatch beacons path/to/eve.json
+python -m threatwatch triage data/demo-eve.json --format markdown --output reports/triage.md
+python -m threatwatch beacons data/demo-eve.json
 ```
 
-Lifecycle metrics:
+The deterministic demo generates **21 alerts**, grouped into **five incidents**:
+two P1 incidents and one periodic-flow lead. JSON and Markdown reports are written
+to `reports/`. The CLI works offline after installation and does not require Docker.
+
+## How the analysis works
+
+Alerts from the same source stay together until a quiet gap exceeds 15 minutes.
+The incident preserves signatures, destinations, ATT&CK context and playbooks.
+Priority combines the highest severity, tactic diversity and alert volume; escalation
+reasons are included in the report. Unknown SIDs use the Suricata severity fallback.
+
+The separate flow heuristic looks for at least eight internal-to-external connection
+starts with regular intervals. Investigate the owning process and destination;
+monitoring agents and updaters can also produce periodic traffic.
+
+[Correlation and scoring](src/threatwatch/triage.py) · [Flow analysis](src/threatwatch/beacon.py) · [Playbooks](docs/INCIDENT_RESPONSE_PLAYBOOK.md)
+
+## Test the Python workflow
 
 ```bash
-python -m threatwatch metrics records.csv --baseline before-playbook --treatment with-playbook
+python -m unittest discover -s tests -v
 ```
 
-## Optional Elastic/Kibana lab
+The existing suite passes **32 tests** covering parsing, rule metadata, grouping,
+priority boundaries, flow timing, lifecycle metrics and CLI output.
 
-The repository includes Compose, Filebeat and Kibana setup material. Treat it as a lab path that still requires an owner-retained end-to-end run with current compatible image versions.
+## Optional Elastic integration
 
-See [LIVE_PIPELINE_VALIDATION.md](docs/LIVE_PIPELINE_VALIDATION.md) for the exact next evidence target.
+The repository also includes Suricata, Filebeat, Elasticsearch and Kibana configuration.
+See [the Kibana guide](docs/KIBANA_GUIDE.md) and [integration checklist](docs/LIVE_PIPELINE_VALIDATION.md).
+The supplied Compose stack disables authentication for a local lab and binds published
+Elastic ports to loopback; review [Security](SECURITY.md) before starting it.
 
-## Limitations
-
-- Synthetic incident grouping does not establish production alert quality.
-- Beacon heuristics generate leads, not verdicts.
-- The small timing exercise is not a productivity benchmark.
-- Full Suricata → Filebeat → Elasticsearch → Kibana operational evidence is still pending.
-
-See [validation](docs/VALIDATION.md), [metrics](docs/METRICS.md), and the root [roadmap](../docs/ROADMAP.md).
+The offline tests do not establish that the entire capture-to-dashboard stack works.
+Source-based grouping can merge unrelated activity behind shared addresses. The next
+integration milestone is to trace one labeled event from raw EVE through Elasticsearch
+into Kibana. Measure investigation time separately using [lifecycle records](docs/METRICS.md).
